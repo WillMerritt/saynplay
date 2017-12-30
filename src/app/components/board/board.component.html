@@ -1,0 +1,10 @@
+
+<div id="board">
+  <div *ngFor="let row of rows; let i = index">
+    <div *ngFor="let col of rows; let j = index" [ngClass]="{'black-square': (i+j)%2 == 1 , 'white-square': (i+j)%2 == 0}">
+      <div style="text-align: center;">
+        <h2 style="color: white;">Piece Here</h2>
+      </div>
+    </div>
+  </div>
+</div>

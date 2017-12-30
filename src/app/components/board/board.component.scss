@@ -1,0 +1,39 @@
+$dark-color: black;
+$light-color: #e2e2e2;
+
+
+$board-size: 800px;
+
+$size: 100px;
+
+.square {
+  display: inline-block;
+  width: 12.5%;
+  height: 12.5%;
+}
+
+#board {
+  width: $board-size;
+  height: $board-size;
+}
+
+.black-square {
+  @extend .square;
+  background-color: $dark-color;
+}
+
+.white-square {
+  @extend .square;
+  background-color: $light-color;
+}
+
+//.chess-row {
+//  display: block;
+//  height: 12.5%;
+//  width: 100%;
+//}
+//
+//.chess-col {
+//  display: inline-block;
+//  width: 12.5%;
+//}
