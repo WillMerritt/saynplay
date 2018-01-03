@@ -1,4 +1,6 @@
 import { Component, OnInit } from '@angular/core';
+import {UtilsService} from '../../services/utils.service';
+
 
 @Component({
   selector: 'app-board',
@@ -8,8 +10,8 @@ import { Component, OnInit } from '@angular/core';
 export class BoardComponent implements OnInit {
   rows = new Array(8);
 
-
-  constructor() { }
+  board = this.utils.createArray([8, 8]);
+  constructor(private utils: UtilsService) { }
 
   ngOnInit() {
 
