@@ -1,0 +1,13 @@
+<h1>3D CHESS</h1>
+
+
+<hr>
+<h3>CONNECTED CLIENTS</h3>
+<ul>
+  <li *ngFor="let client of socketService.getClients()">
+    <button (click)="socketService.requestToPlay(client)">Request to play:</button>{{client}}
+  </li>
+</ul>
+
+
+<button (click)="dataService.apiFetch()">Consolelog Data</button>

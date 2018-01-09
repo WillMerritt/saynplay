@@ -4,7 +4,7 @@
     "outDir": "../out-tsc/app",
     "baseUrl": "./",
     "module": "es2015",
-    "types": [ "node" ],
+    "types": [ "node", "socket.io-client" ],
     "typeRoots": [ "../node_modules/@types" ]
   },
   "exclude": [
