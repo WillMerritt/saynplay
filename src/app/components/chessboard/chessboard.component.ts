@@ -6,7 +6,15 @@ const ObjLoader = require('three-obj-loader')(THREE);
 const OrbitControls = require('three-orbit-controls')(THREE);
 
 
+
+const TrackballControls = require('three-trackballcontrols');
+
+
+import DragControlsAdv from 'drag-controls-adv';
+
+
 import { KING, QUEEN, PAWN, ROOK, BISHOP, KNIGHT, LIGHT, DARK } from '../../globals/vars';
+import {Object3D} from 'three';
 
 
 @Component({
@@ -27,7 +35,7 @@ export class ChessboardComponent implements OnInit, AfterViewInit {
 
   @ViewChild('canvas')
   private canvasRef: ElementRef;
-  private controls: THREE.OrbitControls;
+  // private controls: THREE.OrbitControls;
   private renderer: THREE.WebGLRenderer;
   private scene: THREE.Scene;
   private loader: THREE.OBJLoader;
@@ -39,10 +47,14 @@ export class ChessboardComponent implements OnInit, AfterViewInit {
   private spotLight: THREE.SpotLight;
   private raycaster: THREE.Raycaster = new THREE.Raycaster();
   private mouse: THREE.Vector2 = new THREE.Vector2();
+  private dragControls: any;
+  private objects: Object3D[] = [];
+  private controls: THREE.TrackballControls;
+  private theta: number = 0;
 
 
   /* STAGE PROPERTIES */
-  @Input() public cameraZ = 3;
+  @Input() public cameraZ = 1000;
   @Input() public fieldOfView = 70;
   @Input() public nearClippingPane = .1;
   @Input() public farClippingPane = 10000;
@@ -65,22 +77,21 @@ export class ChessboardComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit() {
-    console.log(KING);
     this.initScene();
     this.initLighting();
     this.initHelpers();
-    this.addShadowBox();
-    this.addPieces();
-    // this.addCube();
-    // this.addLightCube();
-    // this.addPlane();
+    // this.addShadowBox();
+    this.addCube();
+    // this.addPieces();
     this.startRenderingLoop();
+    this.initDraggable();
   }
 
   // Initializer
 
   initScene() {
     this.scene = new THREE.Scene();
+    // this.scene.fog = new THREE.FogExp2( 0xcccccc, 0.002 );
 
     this.camera = new THREE.PerspectiveCamera(
       this.fieldOfView,
@@ -88,7 +99,9 @@ export class ChessboardComponent implements OnInit, AfterViewInit {
       this.nearClippingPane,
       this.farClippingPane
     );
-    this.camera.position.z = this.cameraZ;
+    this.camera.position.set(0, 0, this.cameraZ);
+    this.camera.lookAt(new THREE.Vector3(0, 0, 0));
+
 
   }
 
@@ -139,8 +152,8 @@ export class ChessboardComponent implements OnInit, AfterViewInit {
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
     // Start Orbit Control
-    this.controls = new OrbitControls(this.camera, this.renderer.domElement);
-    this.controls.update();
+    // this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+    // this.controls.update();
 
     this.camera.updateMatrixWorld(true);
 
@@ -148,7 +161,10 @@ export class ChessboardComponent implements OnInit, AfterViewInit {
     const component: ChessboardComponent = this;
     (function render() {
       requestAnimationFrame(render);
-      component.controls.update();
+      // if (component.mouse && component.camera) {
+      //   component.raycaster.setFromCamera( component.mouse, component.camera );
+      // }
+      // component.controls.update();
       component.updateScene();
       component.renderer.render(component.scene, component.camera);
     }());
@@ -157,33 +173,16 @@ export class ChessboardComponent implements OnInit, AfterViewInit {
   updateScene() {
     // this.animateCube();
     // component.animatePiece();
-    this.showHoveredElements();
-  }
+    // this.showHoveredElements();
+    // this.theta += 1;
+    // const radius = 1000;
 
-  showHoveredElements() {
-    // update the picking ray with the camera and mouse position
-    this.raycaster.setFromCamera( this.mouse, this.camera );
+    // this.camera.position.x = radius * Math.sin(THREE.Math.degToRad( this.theta ) );
+    // this.camera.position.y = radius * Math.sin( THREE.Math.degToRad( this.theta ) );
+    // this.camera.position.z = radius * Math.cos( THREE.Math.degToRad( this.theta ) );
 
-    // calculate objects intersecting the picking ray
-    const intersects = this.raycaster.intersectObjects( this.scene.children );
-
-    if ( intersects.length > 0 ) {
-      // console.log(intersects.length);
-    }
-    //   if ( this.INTERSECTED !== intersects[ 0 ].object ) {
-    //     if ( this.INTERSECTED ) {
-    //       this.INTERSECTED.material.emissive.setHex( this.INTERSECTED.currentHex );
-    //     }
-    //     this.INTERSECTED = intersects[ 0 ].object;
-    //     this.INTERSECTED.currentHex = this.INTERSECTED.material.emissive.getHex();
-    //     this.INTERSECTED.material.emissive.setHex( 0xff0000 );
-    //   }
-    // } else {
-    //   if ( this.INTERSECTED ) {
-    //     this.INTERSECTED.material.emissive.setHex( this.INTERSECTED.currentHex );
-    //   }
-    //   this.INTERSECTED = null;
-    // }
+    // this.camera.lookAt( new THREE.Vector3(0, 0, 0) );
+    // this.camera.updateMatrixWorld(true);
   }
 
   // Adding elements to the scene
@@ -201,58 +200,82 @@ export class ChessboardComponent implements OnInit, AfterViewInit {
       new THREE.MeshBasicMaterial({map: new THREE.TextureLoader().load(dir + 'rt' + type), side: THREE.DoubleSide}),
       new THREE.MeshBasicMaterial({map: new THREE.TextureLoader().load(dir + 'lf' + type), side: THREE.DoubleSide}),
     ];
-    const cubeMaterial = new THREE.MeshFaceMaterial(cubeMaterials);
-    // const cubeMaterial =  new THREE.MeshBasicMaterial({map: new THREE.TextureLoader().load(dir + 'ft' + type), side: THREE.DoubleSide})
-    const cube = new THREE.Mesh(geometry, cubeMaterial);
+    // const cubeMaterial = new THREE.MeshFaceMaterial(cubeMaterials);
+    const cube = new THREE.Mesh(geometry, cubeMaterials);
     this.scene.add( cube );
   }
 
   addCube() {
-    const geometry = new THREE.BoxGeometry( this.size, this.size, this.size );
-    // const material = new THREE.MeshBasicMaterial( { color: 0x00ff00, wireframe: false } );
-    const material = new THREE.MeshLambertMaterial( {map: new THREE.TextureLoader().load('assets/images/cmu.png'), side: THREE.DoubleSide});
-    this.cube = new THREE.Mesh( geometry, material );
-    this.scene.add( this.cube );
+    const geometry = new THREE.BoxGeometry( 40, 40, 40 );
+    for ( let i = 0; i < 200; i ++ ) {
+      const object = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( { color: Math.random() * 0xffffff } ) );
+      object.position.set(Math.random() * 1000 - 500, Math.random() * 1000 - 500, Math.random() * 1000 - 500);
+      object.rotation.set(Math.random() * 2 * Math.PI, Math.random() * 2 * Math.PI, Math.random() * 2 * Math.PI)
+      object.scale.set(Math.random() * 2 + 1, Math.random() * 2 + 1, Math.random() * 2 + 1);
+      object.castShadow = true;
+      object.receiveShadow = true;
+      this.scene.add( object );
+      this.objects.push( object );
+    }
   }
 
   addPieces() {
     this.loader = new THREE.OBJLoader();
     this.loader.load('assets/pieces/chess_board.obj', (obj: THREE.Object3D) => {
-      let material = new THREE.MeshLambertMaterial( { color: 0xffffff, side: THREE.DoubleSide } );
+      const material = new THREE.MeshLambertMaterial( { color: 0xffffff, side: THREE.DoubleSide } );
       obj.traverse(function (child) {
         if (child instanceof THREE.Mesh) {
           child.material = material;
         }
       });
-      obj.scale.set(0.05, 0.05, 0.05);
-      obj.position.set(8.2, -0.65, -1.6);
+      // obj.scale.set(0.05, 0.05, 0.05);
       const box = new THREE.Box3().setFromObject( obj );
       this.boardSize = box.getSize();
-      console.log( box.min, box.max, box.getSize() );
+      obj.position.set(8.2, -0.65, -1.6);
       this.scene.add(obj);
 
       // Add pieces once scene is added
       const board = this.createBoard();
+
       board.forEach((row, i) => {
         row.forEach((col, j) => {
           const color = i > 1 ? LIGHT : DARK;
           if (col !== '') {
             this.loader.load(`assets/pieces/${col}_${color}.obj`, (obj: THREE.Object3D) => {
-              material = new THREE.MeshLambertMaterial( { map: new THREE.TextureLoader().load(`assets/images/${color}_wood.jpg`), side: THREE.DoubleSide } );
+              // material = new THREE.MeshBasicMaterial( { map: new THREE.TextureLoader().load(`assets/images/${color}_wood.jpg`), side: THREE.DoubleSide } );
+              const pieceMat = new THREE.MeshBasicMaterial( { color: 0x00ff00, side: THREE.DoubleSide } );
               obj.traverse(function (child) {
                 if (child instanceof THREE.Mesh) {
-                  child.material = material;
+                  child.material = pieceMat;
                 }
               });
-              obj.scale.set(0.05, 0.05, 0.05);
+              // const mesh = new THREE.Mesh( obj, new THREE.MeshLambertMaterial( { color: Math.random() * 0xffffff } ) );
+              // obj.scale.set(0.05, 0.05, 0.05);
               const position = this.getPositionFromIndices(i, j);
               obj.position.set(position[0], position[1], position[2]);
+              obj.castShadow = true;
+              obj.receiveShadow = true;
               this.scene.add(obj);
+              this.objects.push(obj);
             });
           }
         });
       });
     });
+  }
+
+  initDraggable() {
+    this.controls = new TrackballControls( this.camera );
+    this.controls.rotateSpeed = 1.0;
+    this.controls.zoomSpeed = 1.2;
+    this.controls.panSpeed = 0.8;
+    this.controls.noZoom = false;
+    this.controls.noPan = false;
+    this.controls.staticMoving = true;
+    this.controls.dynamicDampingFactor = 0.3;
+
+    // this.dragControls = new DragControls(this.objects, this.camera, this.renderer.domElement, new THREE.Vector3(0, 1, 0));
+    this.dragControls = new DragControlsAdv(this.objects, this.camera, this.renderer.domElement, new THREE.Vector3(0, 1, 0));
   }
 
   createBoard() {
@@ -284,16 +307,6 @@ export class ChessboardComponent implements OnInit, AfterViewInit {
 
   // Animations ...
 
-  private animateCube() {
-    this.cube.rotation.x += this.rotationSpeedX;
-    this.cube.rotation.y += this.rotationSpeedY;
-  }
-
-  private animatePiece() {
-    this.demoPiece.rotation.y += this.rotationSpeedY;
-    this.demoPiece.rotation.x += this.rotationSpeedX;
-  }
-
 
   // Utilities
 
@@ -302,6 +315,11 @@ export class ChessboardComponent implements OnInit, AfterViewInit {
   }
 
   // Event Handlers
+
+  updateMouse(event: any) {
+    this.mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+    this.mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+  }
 
   @HostListener('window:resize', ['$event'])
   onResize(event: any) {
@@ -313,7 +331,6 @@ export class ChessboardComponent implements OnInit, AfterViewInit {
   }
   @HostListener('mousemove', ['$event'])
   onMouseMove(event: any) {
-    this.mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
-    this.mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+    this.updateMouse(event);
   }
 }
