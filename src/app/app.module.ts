@@ -10,6 +10,8 @@ import {IoService} from './services/io.service';
 import {DataService} from './services/data.service';
 import {UtilsService} from './services/utils.service';
 import {HttpClientModule} from '@angular/common/http';
+import { ModalModule } from 'ngx-bootstrap';
+import {ChessService} from './services/chess.service';
 
 
 @NgModule({
@@ -22,12 +24,14 @@ import {HttpClientModule} from '@angular/common/http';
   ],
   imports: [
     BrowserModule,
-    HttpClientModule
+    HttpClientModule,
+    ModalModule.forRoot()
   ],
   providers: [
     IoService,
     DataService,
     UtilsService,
+    ChessService
 
   ],
   bootstrap: [AppComponent]

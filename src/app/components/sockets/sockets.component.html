@@ -1,13 +1,35 @@
 <h1>3D CHESS</h1>
 
+<hr>
+<h3>Current Socket ID</h3>
+<h4>{{socketService.getSocketId()}}</h4>
 
 <hr>
+
 <h3>CONNECTED CLIENTS</h3>
-<ul>
-  <li *ngFor="let client of socketService.getClients()">
-    <button (click)="socketService.requestToPlay(client)">Request to play:</button>{{client}}
+<ul class="list-group">
+  <li class="list-group-item" *ngFor="let client of socketService.getClients()">
+    <button class="btn btn-primary" (click)="socketService.requestToPlay(client)">Request to play:</button>{{client}}
   </li>
 </ul>
 
+<!--ngx bootstrap-->
+<!--<button type="button" class="btn btn-primary" (click)="openModal(template)">Create template modal</button>-->
 
-<button (click)="dataService.apiFetch()">Consolelog Data</button>
+<ng-template #template>
+  <div class="modal-header">
+    <h3 class="modal-title pull-left">{{socketService.getRequestedSocket()}} wants to play you!!</h3>
+
+    <button type="button" class="close pull-right" aria-label="Close" (click)="modalRef.hide()">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body">
+    <h4>Do You Accept?</h4>
+
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="pull-left btn btn-danger" (click)="respondToRequest('decline')">Decline</button>
+    <button type="button" class="pull-right btn btn-primary" (click)="respondToRequest('accept')">Accept</button>
+  </div>
+</ng-template>

@@ -8,7 +8,9 @@
     "build": "ng build",
     "test": "ng test",
     "lint": "ng lint",
-    "e2e": "ng e2e"
+    "e2e": "ng e2e",
+    "setup": "babel server.js",
+    "nodemon": "nodemon server.js"
   },
   "private": true,
   "dependencies": {
@@ -26,6 +28,8 @@
     "core-js": "^2.4.1",
     "drag-controls-adv": "^1.0.3",
     "express": "^4.16.2",
+    "mongodb": "^3.0.1",
+    "ngx-bootstrap": "^2.0.0-rc.0",
     "rxjs": "^5.5.2",
     "socket.io": "^2.0.4",
     "socket.io-client": "^2.0.4",
@@ -45,6 +49,8 @@
     "@types/jasminewd2": "~2.0.2",
     "@types/node": "^6.0.95",
     "@types/three": "^0.84.36",
+    "babel-cli": "^6.26.0",
+    "babel-preset-es2015": "^6.24.1",
     "codelyzer": "~3.2.0",
     "gulp": "^3.9.1",
     "gulp-livereload": "^3.8.1",

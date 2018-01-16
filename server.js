@@ -1,6 +1,14 @@
 const path = require('path');
 const express = require('express');
 const app = express();
+const assert = require('assert');
+
+
+// import Piece from "./js/classes/Pieces";
+const { createChessBoard }  = require('./js/Chess');
+
+
+
 
 // API Config
 
@@ -16,41 +24,201 @@ app.get('*', (req, res, next) => {
   res.sendFile(__dirname+"/dist/index.html");
 });
 
-// Socket Config
+// Socket / Mongo Config
 
 
 const http = require('http').createServer(app);
 const io = require('socket.io')(http);
+const MongoClient = require('mongodb').MongoClient;
+const ObjectId = require('mongodb').ObjectId;
+const mongoUri = 'mongodb://atnelson:Buddy1009@ds155577.mlab.com:55577/saynplay';
 
+MongoClient.connect(mongoUri, (err, client) => {
+  if (err) return console.log(err);
+  db = client.db('saynplay');
 
-io.on('connection', (socket) => {
-  updateClients();
+  // insertDocuments(db, (result) => {
+  //   findDocuments(db, (docs) => {
+  //     updateDocument(db, () => {
+  //       removeDocument(db, () => {
+  //         client.close();
+  //       })
+  //     })
+  //   });
+  // });
 
-  socket.on('disconnect', () => {
-    updateClients()
+  console.log('Connected to the database');
+  // SOCKET CONFIG
+  io.on('connection', (socket) => {
+    socket.on('request to play', (id) => {
+      // send a private message to the socket with the given id
+      socket.to(id).emit('received request', socket.id);
+    });
+
+    // socket.broadcast.emit('somebody just connected');
+
+    updateClients();
+
+    socket.on('accept', (socket_id) => {
+      // console.log('Accepted Request');
+      // console.log(socket.id, socket_id);
+      createGame(db, (startTime) => {
+        findGameByStart(db, startTime, (game) => {
+          const id = game['_id'];
+          // Create socket group here
+          socket.join( `${id}`);
+          const socket2 = io.sockets.connected[socket_id];
+          socket2.join(`${id}`);
+          io.to(`${id}`).emit('game update', game);
+        })
+      })
+    });
+
+    socket.on('fetch game', (id) => {
+      findGameById(db, id, (game) => {
+        const id = game['_id'];
+        socket.join(`${id}`);
+        io.to(`${id}`).emit('game update', game);
+      })
+    });
+
+    socket.on('decline', (socket_id) => {
+      console.log('Declined Request');
+    });
+
+    socket.on('update clients', () => {
+      updateClients();
+    });
+
+    socket.on('disconnect', () => {
+      updateClients();
+    });
   });
-
-
-  socket.on('request to play', (socket) => {
-    console.log('Request to play: ', socket);
-    io.emit('received request', socket);
-  })
-
-  // socket.on('show clients', () => {
-  //   updateClients()
-  // })
 });
 
+
+// SOCKET IO CODE
+
 function updateClients() {
-  io.of('/').clients((error, clients) => {
+  io.clients((error, clients) => {
     if (error) throw error;
-    io.emit('show clients', clients);
-    console.log(clients); // => [PZDoMHjiu8PYfRiKAAAF, Anw2LatarvGVVXEIAAAD]
+    io.emit('updated clients', clients);
   });
 }
 
+function remove(array, element) {
+  return array.filter(e => e !== element);
+}
+
+
+// CHESS DB OPERATIONS
+const createGame = function(db, callback) {
+  const collection = db.collection('games');
+  const time = Date.now();
+  collection.insertOne({
+    game: JSON.stringify(createChessBoard()),
+    startTime: time,
+  }, (err, result) => {
+    callback(time);
+  })
+};
+
+const findGameByStart = function(db, startTime, callback) {
+  const collection = db.collection('games');
+  collection.find({startTime: startTime}).toArray((err, games) => {
+    if (games.length === 1) {
+      const game = games[0];
+      callback(game);
+    }
+  })
+};
+
+const findGameById = function(db, id, callback) {
+  const collection = db.collection('games');
+  collection.find({_id: ObjectId(id)}).toArray((err, games) => {
+    if (games.length === 1) {
+      const game = games[0];
+      callback(game);
+    }
+  })
+};
 
 
 http.listen(3000, () => {
   console.log('listening to port 3000')
 });
+
+
+// Chess Flow
+/*
+Once a person accepts a request to play, create a new board
+Save that board with the following attributes
+{
+  board: board,
+  startTime: Date.now()
+  _id: id
+}
+Store the game startTime in a variable
+Once the board has been successfully saved, fetch the board with the start time as indicated in the stored variable
+Create a Socket Group with the name of the id of the board
+Add the two sockets to the group
+Emit the fetched board to both sockets in the group
+
+
+*/
+
+
+
+// TESTING
+const insertDocuments = function(db, callback) {
+  // Get the documents collection
+  const collection = db.collection('documents');
+  // Insert some documents
+  collection.insertMany([
+    {a : 1}, {a : 2}, {a : 3}
+  ], function(err, result) {
+    assert.equal(err, null);
+    assert.equal(3, result.result.n);
+    assert.equal(3, result.ops.length);
+    console.log("Inserted 3 documents into the collection");
+    callback(result);
+  });
+};
+
+const findDocuments = function(db, callback) {
+  // Get the documents collection
+  const collection = db.collection('documents');
+  // Find some documents
+  collection.find({}).toArray(function(err, docs) {
+    assert.equal(err, null);
+    console.log("Found the following records");
+    console.log(docs);
+    callback(docs);
+  });
+};
+
+const updateDocument = function(db, callback) {
+  // Get the documents collection
+  const collection = db.collection('documents');
+  // Update document where a is 2, set b equal to 1
+  collection.updateOne({ a : 2 }
+    , { $set: { b : 1 } }, function(err, result) {
+      assert.equal(err, null);
+      assert.equal(1, result.result.n);
+      console.log("Updated the document with the field a equal to 2");
+      callback(result);
+    });
+};
+
+const removeDocument = function(db, callback) {
+  // Get the documents collection
+  const collection = db.collection('documents');
+  // Delete document where a is 3
+  collection.deleteOne({ a : 3 }, function(err, result) {
+    assert.equal(err, null);
+    assert.equal(1, result.result.n);
+    console.log("Removed the document with the field a equal to 3");
+    callback(result);
+  });
+};
+

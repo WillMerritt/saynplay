@@ -1,4 +1,6 @@
 import { Component } from '@angular/core';
+import {ChessService} from './services/chess.service';
+import {IoService} from './services/io.service';
 
 @Component({
   selector: 'app-root',
@@ -7,4 +9,12 @@ import { Component } from '@angular/core';
 })
 export class AppComponent {
   title = 'app';
+
+  constructor(public chessService: ChessService,
+              public socketService: IoService) {
+    if (this.chessService.wasPlaying()) {
+      const id = this.chessService.getGameId();
+      this.socketService.fetchGame(id);
+    }
+  }
 }

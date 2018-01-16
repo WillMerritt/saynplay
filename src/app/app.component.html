@@ -2,5 +2,10 @@
 
 <!--<app-chessboard></app-chessboard>-->
 
-<app-sockets></app-sockets>
+<div class="container">
+  <app-sockets></app-sockets>
+  <app-chessboard *ngIf="chessService.isPlaying()"></app-chessboard>
+
+</div>
+
 
