@@ -25,7 +25,6 @@ export class IoService implements OnInit {
     });
 
     this.socket.on('game update', (data) => {
-      console.log(data);
       const board = JSON.parse(data['game']);
       const startTime = data['startTime'];
       const id = data['_id'];
@@ -61,6 +60,11 @@ export class IoService implements OnInit {
   fetchGame(game_id) {
     this.socket.emit('fetch game', game_id);
     console.log('fetching game');
+  }
+  updateGame() {
+    const board = this.chessService.getGameBoard();
+    const id = this.chessService.getGameId();
+    this.socket.emit('update game', board, id);
   }
 
   requestToPlay(socket: string) {
