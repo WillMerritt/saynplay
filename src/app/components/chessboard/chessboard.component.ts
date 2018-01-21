@@ -14,10 +14,9 @@ import { KING, QUEEN, PAWN, ROOK, BISHOP, KNIGHT, LIGHT, DARK } from '../../glob
 import {Object3D, Vector3} from 'three';
 import {ChessService} from '../../services/chess.service';
 import {IoService} from '../../services/io.service';
+import * as ObjLoader from 'three-obj-loader';
+ObjLoader(THREE);
 
-const ObjLoader = require('three-obj-loader')(THREE);
-const OrbitControls = require('three-orbit-controls')(THREE);
-const TrackballControls = require('three-trackballcontrols');
 
 @Component({
   selector: 'app-chessboard',
