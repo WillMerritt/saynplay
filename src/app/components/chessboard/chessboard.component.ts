@@ -10,7 +10,6 @@ import {
 import * as THREE from 'three';
 import * as TWEEN from '@tweenjs/tween.js';
 import DragControlsAdv from 'drag-controls-adv';
-import { KING, QUEEN, PAWN, ROOK, BISHOP, KNIGHT, LIGHT, DARK } from '../../globals/vars';
 import {Object3D, Vector3} from 'three';
 import {ChessService} from '../../services/chess.service';
 import {IoService} from '../../services/io.service';
