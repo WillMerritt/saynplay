@@ -8,11 +8,27 @@ const assert = require('assert');
 const { createChessBoard }  = require('./js/Chess');
 
 
+// If an incoming request uses
+// a protocol other than HTTPS,
+// redirect that request to the
+// same url but with HTTPS
+const forceSSL = function() {
+  return function (req, res, next) {
+    if (req.headers['x-forwarded-proto'] !== 'https') {
+      return res.redirect(
+        ['https://', req.get('Host'), req.url].join('')
+      );
+    }
+    next();
+  }
+};
+// Instruct the app
+// to use the forceSSL
+// middleware
 
+app.use(forceSSL());
 
 // API Config
-
-
 
 app.use(express.static(path.join(__dirname, '/dist')));
 
@@ -154,7 +170,7 @@ const updateGameById = function(db, id, board, callback) {
 };
 
 
-http.listen(3000, () => {
+http.listen(process.env.port || 3000, () => {
   console.log('listening to port 3000')
 });
 
