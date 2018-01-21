@@ -67,8 +67,6 @@ MongoClient.connect(mongoUri, (err, client) => {
     updateClients();
 
     socket.on('accept', (socket_id) => {
-      // console.log('Accepted Request');
-      // console.log(socket.id, socket_id);
       createGame(db, (startTime) => {
         findGameByStart(db, startTime, (game) => {
           const id = game['_id'];
@@ -90,12 +88,9 @@ MongoClient.connect(mongoUri, (err, client) => {
     });
 
     socket.on('update game', (board, game_id, data) => {
-      console.log('UPDATING THE GAME NOW');
       updateGameById(db, game_id, board, (res) => {
-        console.log(res);
         findGameById(db, game_id, (game) => {
           const id = game['_id'];
-          console.log(game);
           socket.join(`${id}`);
           io.to(`${id}`).emit('game update', game, data);
         })
