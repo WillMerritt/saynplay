@@ -171,7 +171,7 @@ const updateGameById = function(db, id, board, callback) {
 };
 
 
-http.listen( process.env.port || 8000, () => {
+http.listen( process.env.PORT || 8000, () => {
   console.log('listening to port 8000')
 });
 
