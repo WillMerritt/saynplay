@@ -26,7 +26,7 @@ const forceSSL = function() {
 // to use the forceSSL
 // middleware
 
-app.use(forceSSL());
+// app.use(forceSSL());
 
 // API Config
 
@@ -170,7 +170,7 @@ const updateGameById = function(db, id, board, callback) {
 };
 
 
-http.listen(process.env.port || 3000, () => {
+http.listen( 3000, () => {
   console.log('listening to port 3000')
 });
 
