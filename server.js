@@ -26,7 +26,7 @@ const forceSSL = function() {
 // to use the forceSSL
 // middleware
 
-// app.use(forceSSL());
+app.use(forceSSL());
 
 // API Config
 
@@ -56,6 +56,7 @@ MongoClient.connect(mongoUri, (err, client) => {
   console.log('Connected to the database');
   // SOCKET CONFIG
   io.on('connection', (socket) => {
+    console.log(`${socket.id} just connected to socket server`);
     socket.on('request to play', (id) => {
       // send a private message to the socket with the given id
       socket.to(id).emit('received request', socket.id);
