@@ -24,11 +24,20 @@ export class IoService implements OnInit {
       this.requestedSocket = socket_id;
     });
 
-    this.socket.on('game update', (data) => {
-      const board = JSON.parse(data['game']);
-      const startTime = data['startTime'];
-      const id = data['_id'];
-      this.chessService.createGame(board, startTime, id);
+    this.socket.on('game update', (game, changes) => {
+      const board = game['game'];
+      const startTime = game['startTime'];
+      const id = game['_id'];
+      if (changes) {
+        // Game was updated, not just created
+        console.log('UPDATING GAME');
+        this.chessService.updateGame(board, startTime, id, changes);
+      } else {
+        console.log('CREATING GAME');
+        this.chessService.createGame(board, startTime, id);
+      }
+
+      console.log(board);
     });
   }
 
@@ -61,10 +70,10 @@ export class IoService implements OnInit {
     this.socket.emit('fetch game', game_id);
     console.log('fetching game');
   }
-  updateGame() {
+  updateGame(data) {
     const board = this.chessService.getGameBoard();
     const id = this.chessService.getGameId();
-    this.socket.emit('update game', board, id);
+    this.socket.emit('update game', board, id, data);
   }
 
   requestToPlay(socket: string) {

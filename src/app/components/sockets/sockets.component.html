@@ -1,21 +1,3 @@
-<h1>3D CHESS</h1>
-
-<hr>
-<h3>Current Socket ID</h3>
-<h4>{{socketService.getSocketId()}}</h4>
-
-<hr>
-
-<h3>CONNECTED CLIENTS</h3>
-<ul class="list-group">
-  <li class="list-group-item" *ngFor="let client of socketService.getClients()">
-    <button class="btn btn-primary" (click)="socketService.requestToPlay(client)">Request to play:</button>{{client}}
-  </li>
-</ul>
-
-<!--ngx bootstrap-->
-<!--<button type="button" class="btn btn-primary" (click)="openModal(template)">Create template modal</button>-->
-
 <ng-template #template>
   <div class="modal-header">
     <h3 class="modal-title pull-left">{{socketService.getRequestedSocket()}} wants to play you!!</h3>

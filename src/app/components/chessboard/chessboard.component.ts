@@ -24,10 +24,7 @@ const TrackballControls = require('three-trackballcontrols');
   templateUrl: './chessboard.component.html',
   styleUrls: ['./chessboard.component.css']
 })
-export class ChessboardComponent implements AfterViewInit {
-
-  private pieces: String[] = [KING, QUEEN, PAWN, ROOK, BISHOP, KNIGHT];
-  private colors: String[] = [LIGHT, DARK];
+export class ChessboardComponent implements AfterViewInit, OnInit {
 
   // Three Elements
   private camera: THREE.PerspectiveCamera;
@@ -47,6 +44,7 @@ export class ChessboardComponent implements AfterViewInit {
   private dragControls: any;
   private objects: Object3D[] = [];
   public tween: any;
+  private group: THREE.Group;
 
   // Camera Properties
   public camV = new THREE.Vector3(0, 0, 0);
@@ -65,7 +63,17 @@ export class ChessboardComponent implements AfterViewInit {
 
   // Lifecycle Hooks
   constructor(private chessService: ChessService,
-              private socketService: IoService) { }
+              public socketService: IoService) { }
+
+  ngOnInit() {
+    this.chessService.changes
+      .subscribe(
+        data => {
+          console.log('CHANGES: ', data);
+          this.updateScenePieces(data);
+        }
+      );
+  }
 
   ngAfterViewInit() {
     this.initScene();
@@ -82,8 +90,6 @@ export class ChessboardComponent implements AfterViewInit {
 
   initScene() {
     this.scene = new THREE.Scene();
-    // this.scene.fog = new THREE.FogExp2( 0xcccccc, 0.002 );
-
     this.camera = new THREE.PerspectiveCamera(
       this.fieldOfView,
       this.getAspectRatio(),
@@ -95,14 +101,14 @@ export class ChessboardComponent implements AfterViewInit {
   }
 
   initHelpers() {
-    const axesHelper = new THREE.AxisHelper( 50 );
-    this.scene.add( axesHelper );
+    // const axesHelper = new THREE.AxisHelper( 50 );
+    // this.scene.add( axesHelper );
   }
 
 
   initLighting() {
     // Create a DirectionalLight and turn on shadows for the light
-    this.ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+    this.ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
     this.scene.add(this.ambientLight);
 
     this.dirLight = new THREE.DirectionalLight(0xffffff, 0.6);
@@ -129,6 +135,24 @@ export class ChessboardComponent implements AfterViewInit {
     this.camera.lookAt(new THREE.Vector3(0, 0, 0));
   }
 
+  animatePiece = (object, newPos) => {
+    this.tween = new TWEEN.Tween(object.position)
+      .to(newPos)
+      .start()
+      .easing(TWEEN.Easing.Exponential.InOut)
+      .onUpdate(() => {
+      });
+  }
+
+  removePieceFromScene(piece, coors) {
+    const name = this.getDetailName(piece.name, piece.color, coors.row, coors.col);
+    this.scene.children.forEach((child, i) => {
+      if (child.name === name) {
+        this.scene.remove(child);
+      }
+    });
+  }
+
 
   animate = (object: Object3D, pos: THREE.Vector3) => {
     const coors = this.getRowColFromPos(pos);
@@ -137,16 +161,16 @@ export class ChessboardComponent implements AfterViewInit {
     const piece = this.chessService.getPieceFromCoors(coors);
     if (this.chessService.isLegal(piece, coors, newCoors)) {
       newPos = this.getClosestPos(object.position);
-      this.chessService.modifyBoard(piece, coors, newCoors);
-      this.socketService.updateGame();
+      const changes = [{'old': coors, 'new': newCoors, 'piece': piece}];
+      this.chessService.modifyBoard(piece, coors, newCoors, (removed) => {
+        if (removed) {
+          this.removePieceFromScene(removed, newCoors);
+          changes.push({'old': newCoors, 'new': null, 'piece': removed});
+        }
+      });
+      this.socketService.updateGame(changes);
     }
-
-    this.tween = new TWEEN.Tween(object.position)
-      .to(newPos)
-      .start()
-      .easing(TWEEN.Easing.Exponential.InOut)
-      .onUpdate(() => {
-      })
+    this.animatePiece(object, newPos);
   }
 
   // ________________________________________________________________________
@@ -192,7 +216,6 @@ export class ChessboardComponent implements AfterViewInit {
     const coors = this.getPosFromRowCol(square.row, square.col);
     return coors;
   }
-
 
   // Piece Positioning
 
@@ -271,7 +294,7 @@ export class ChessboardComponent implements AfterViewInit {
   addBoard(callback) {
     this.loader = new THREE.OBJLoader();
     this.loader.load('assets/pieces_comp/chessboard.obj', (obj: THREE.Object3D) => {
-      const material = new THREE.MeshLambertMaterial( { map: new THREE.TextureLoader().load('assets/images/marble.jpeg'), side: THREE.DoubleSide } );
+      const material = new THREE.MeshStandardMaterial( { map: new THREE.TextureLoader().load('assets/images/marble.jpeg'), side: THREE.DoubleSide } );
       obj.traverse(function (child) {
         child.userData.parent = obj;
         if (child instanceof THREE.Mesh) {
@@ -299,6 +322,7 @@ export class ChessboardComponent implements AfterViewInit {
         }
         const color = col['color'];
         const piece = col['name'];
+        const name = this.getDetailName(piece, color, row_index, col_index);
         this.loader.load(`assets/pieces_comp/${piece}_${color}.obj`, (obj: THREE.Object3D) => {
           const pieceMat = new THREE.MeshLambertMaterial( { map: new THREE.TextureLoader().load(`assets/images/${color}_wood.jpg`), side: THREE.DoubleSide } );
 
@@ -309,10 +333,9 @@ export class ChessboardComponent implements AfterViewInit {
           });
           const pos = this.setPiecePosition(row_index, col_index, obj);
           obj.position.set(pos.x, pos.y, pos.z);
-          // console.log(pos);
-          // console.log(obj);
           obj.castShadow = true;
           obj.receiveShadow = true;
+          obj.name = name;
           this.scene.add(obj);
           this.objects.push(obj);
         });
@@ -320,14 +343,47 @@ export class ChessboardComponent implements AfterViewInit {
     });
   }
 
+  getDetailName(name, color, row, col) {
+    return `${name}_${color}_${row}_${col}`;
+  }
 
-  // Animations ...
+  updateScenePieces(data) {
+    data.forEach((change, i) => {
+
+      const row = change.old.row;
+      const col = change.old.col;
+      const name = this.getDetailName(change.piece.name, change.piece.color, row, col);
+
+      this.scene.children.forEach((child, j) => {
+        if (name === child.name) {
+          if (change.new == null) {
+            this.scene.remove(child);
+            console.log(child);
+            return;
+          }
+          child.name = this.getDetailName(
+            change.piece.name,
+            change.piece.color,
+            change.new.row,
+            change.new.col);
+
+          const newPos = this.getPosFromRowCol(change.new.row, change.new.col);
+          this.animatePiece(child, newPos);
+        }
+      });
+    });
+  }
+
 
 
   // Utilities
 
   private getAspectRatio() {
     return this.canvas.clientWidth / this.canvas.clientHeight;
+  }
+
+  quitGame() {
+    this.chessService.quitGame();
   }
 
   // Event Handlers
@@ -339,7 +395,7 @@ export class ChessboardComponent implements AfterViewInit {
 
   @HostListener('window:resize', ['$event'])
   onResize(event: any) {
-    this.canvas.style.width = '100%';
+    // this.canvas.style.width = '100%';
     // this.canvas.style.height = '80vh';
     this.renderer.setSize(this.canvas.clientWidth, this.canvas.clientHeight);
     this.camera.aspect = this.getAspectRatio();
@@ -392,3 +448,4 @@ export class ChessboardComponent implements AfterViewInit {
   }
   */
 }
+

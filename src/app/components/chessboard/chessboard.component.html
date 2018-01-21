@@ -1,5 +1,24 @@
-<canvas #canvas style="height: 80vh; width: 100%;"></canvas>
-<button class="btn btn-primary" (click)="rotateCamera('left')">Rotate Left</button>
-<button class="btn btn-primary" (click)="rotateCamera('right')">Rotate Right</button>
+<div class="row">
+  <div class="col">
+    <canvas #canvas style="height: 550px; width: 600px;"></canvas>
+  </div>
+  <div class="col-3 text-center">
+    <button class="btn btn-primary btn-block" (click)="rotateCamera('left')">Rotate Left</button>
+    <button class="btn btn-primary btn-block" (click)="rotateCamera('right')">Rotate Right</button>
+    <button class="btn btn-primary btn-block" (click)="quitGame()">Quit Game</button>
+
+    <hr>
+
+    <ul class="list-group">
+      <li class="list-group-item" *ngFor="let client of socketService.getClients()">
+        <button class="btn btn-primary btn-sm" style="margin-right: 5px;" (click)="socketService.requestToPlay(client)">Play</button>{{client | truncate : 6}}
+      </li>
+    </ul>
+  </div>
+</div>
+
+
+
+
 
 

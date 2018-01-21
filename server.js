@@ -37,16 +37,6 @@ MongoClient.connect(mongoUri, (err, client) => {
   if (err) return console.log(err);
   db = client.db('saynplay');
 
-  // insertDocuments(db, (result) => {
-  //   findDocuments(db, (docs) => {
-  //     updateDocument(db, () => {
-  //       removeDocument(db, () => {
-  //         client.close();
-  //       })
-  //     })
-  //   });
-  // });
-
   console.log('Connected to the database');
   // SOCKET CONFIG
   io.on('connection', (socket) => {
@@ -79,6 +69,19 @@ MongoClient.connect(mongoUri, (err, client) => {
         const id = game['_id'];
         socket.join(`${id}`);
         io.to(`${id}`).emit('game update', game);
+      })
+    });
+
+    socket.on('update game', (board, game_id, data) => {
+      console.log('UPDATING THE GAME NOW');
+      updateGameById(db, game_id, board, (res) => {
+        console.log(res);
+        findGameById(db, game_id, (game) => {
+          const id = game['_id'];
+          console.log(game);
+          socket.join(`${id}`);
+          io.to(`${id}`).emit('game update', game, data);
+        })
       })
     });
 
@@ -116,7 +119,7 @@ const createGame = function(db, callback) {
   const collection = db.collection('games');
   const time = Date.now();
   collection.insertOne({
-    game: JSON.stringify(createChessBoard()),
+    game: createChessBoard(),
     startTime: time,
   }, (err, result) => {
     callback(time);
@@ -140,6 +143,13 @@ const findGameById = function(db, id, callback) {
       const game = games[0];
       callback(game);
     }
+  })
+};
+
+const updateGameById = function(db, id, board, callback) {
+  const collection = db.collection('games');
+  collection.updateOne({_id: ObjectId(id)}, {$set: {game : board}}, (err, res) => {
+    callback(res);
   })
 };
 

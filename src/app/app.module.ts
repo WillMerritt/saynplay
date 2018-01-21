@@ -12,6 +12,8 @@ import {UtilsService} from './services/utils.service';
 import {HttpClientModule} from '@angular/common/http';
 import { ModalModule } from 'ngx-bootstrap';
 import {ChessService} from './services/chess.service';
+import { TruncateModule } from 'ng2-truncate';
+import { AboutComponent } from './components/about/about.component';
 
 
 @NgModule({
@@ -20,12 +22,14 @@ import {ChessService} from './services/chess.service';
     BoardComponent,
     ChessboardComponent,
     SocketsComponent,
+    AboutComponent,
 
   ],
   imports: [
     BrowserModule,
     HttpClientModule,
-    ModalModule.forRoot()
+    ModalModule.forRoot(),
+    TruncateModule
   ],
   providers: [
     IoService,

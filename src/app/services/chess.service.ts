@@ -1,10 +1,11 @@
-import { Injectable } from '@angular/core';
+import {EventEmitter, Injectable} from '@angular/core';
 
 @Injectable()
 export class ChessService {
   private board;
   private id;
   private startTime;
+  public changes: EventEmitter<any> = new EventEmitter();
 
   private gameStarted = false;
 
@@ -18,10 +19,16 @@ export class ChessService {
 
   wasPlaying() {
     if (localStorage.getItem('id')) {
-      console.log('WAS PLAYING');
       return true;
     }
     return false;
+  }
+
+  quitGame() {
+    this.board = null;
+    this.id = null;
+    this.startTime = null;
+    this.gameStarted = false;
   }
 
   createGame(board, startTime, id) {
@@ -42,6 +49,14 @@ export class ChessService {
   }
   getGameBoard() {
     return this.board;
+  }
+
+  updateGame(board, startTime, id, changes) {
+    this.board = board;
+    this.startTime = startTime;
+    this.id = id;
+    this.gameStarted = true;
+    this.changes.emit(changes);
   }
 
   setGameInStorage(id) {
@@ -71,9 +86,11 @@ export class ChessService {
     }
   }
 
-  modifyBoard(piece, coors, newCoors) {
+  modifyBoard(piece, coors, newCoors, callback) {
+    const current = this.board[newCoors.row][newCoors.col];
     this.board[coors.row][coors.col] = null;
     this.board[newCoors.row][newCoors.col] = piece;
+    callback(current);
   }
 
   // Legal Functions
