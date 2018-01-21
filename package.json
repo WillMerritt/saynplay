@@ -33,10 +33,11 @@
     "@tweenjs/tween.js": "^17.1.1",
     "@types/core-js": "^0.9.45",
     "@types/createjs": "0.0.29",
-    "@types/socket.io-client": "^1.4.32",
-    "@types/tweenjs": "^0.6.27",
     "@types/node": "^6.0.96",
+    "@types/socket.io-client": "^1.4.32",
     "@types/three": "^0.84.36",
+    "@types/tweenjs": "^0.6.27",
+    "@types/underscore": "^1.8.7",
     "bootstrap": "^4.0.0-beta.3",
     "core-js": "^2.4.1",
     "drag-controls-adv": "^1.0.6",
@@ -57,6 +58,7 @@
     "ts-loader": "^2.2.1",
     "ts-node": "~3.1.0",
     "typescript": "~2.4.2",
+    "underscore": "^1.8.3",
     "zone.js": "^0.8.14"
   },
   "devDependencies": {

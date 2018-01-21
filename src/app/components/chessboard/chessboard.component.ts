@@ -157,7 +157,7 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
     const newCoors = this.getRowColFromPos(object.position);
     let newPos = {x: pos.x, z: pos.z};
     const piece = this.chessService.getPieceFromCoors(coors);
-    if (this.chessService.isLegal(piece, coors, newCoors)) {
+    if (this.chessService.isCompleteMoveLegal(piece, coors, newCoors)) {
       newPos = this.getClosestPos(object.position);
       const changes = [{'old': coors, 'new': newCoors, 'piece': piece}];
       this.chessService.modifyBoard(piece, coors, newCoors, (removed) => {

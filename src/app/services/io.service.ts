@@ -29,15 +29,10 @@ export class IoService implements OnInit {
       const startTime = game['startTime'];
       const id = game['_id'];
       if (changes) {
-        // Game was updated, not just created
-        console.log('UPDATING GAME');
         this.chessService.updateGame(board, startTime, id, changes);
       } else {
-        console.log('CREATING GAME');
         this.chessService.createGame(board, startTime, id);
       }
-
-      console.log(board);
     });
   }
 

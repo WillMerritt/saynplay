@@ -1,6 +1,5 @@
 import {AfterContentInit, Component, OnInit, TemplateRef, ViewChild} from '@angular/core';
 import {IoService} from '../../services/io.service';
-import {DataService} from '../../services/data.service';
 import {BsModalRef, BsModalService} from 'ngx-bootstrap';
 
 @Component({
@@ -16,7 +15,6 @@ export class SocketsComponent implements OnInit, AfterContentInit {
 
 
   constructor(public socketService: IoService,
-              public dataService: DataService,
               private modalService: BsModalService) { }
 
   ngOnInit() {
@@ -37,8 +35,5 @@ export class SocketsComponent implements OnInit, AfterContentInit {
 
   openModal(template: TemplateRef<any>) {
     this.modalRef = this.modalService.show(template);
-    // setTimeout(() => {
-    //   this.respondToRequest('decline');
-    // }, 10000);
   }
 }
