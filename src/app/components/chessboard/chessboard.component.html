@@ -8,12 +8,6 @@
     <button class="btn btn-primary btn-block" (click)="quitGame()">Quit Game</button>
 
     <hr>
-
-    <ul class="list-group">
-      <li class="list-group-item" *ngFor="let client of socketService.getClients()">
-        <button class="btn btn-primary btn-sm" style="margin-right: 5px;" (click)="socketService.requestToPlay(client)">Play</button>{{client | truncate : 6}}
-      </li>
-    </ul>
   </div>
 </div>
 

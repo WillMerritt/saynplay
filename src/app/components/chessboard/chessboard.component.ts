@@ -60,7 +60,7 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
   public boardMultiplier = 8 / 9.2; // ratio of squares to to total squares from edge to edge
 
   // Lifecycle Hooks
-  constructor(private chessService: ChessService,
+  constructor(public chessService: ChessService,
               public socketService: IoService) { }
 
   ngOnInit() {

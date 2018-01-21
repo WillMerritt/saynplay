@@ -15,3 +15,12 @@
     <button type="button" class="pull-right btn btn-primary" (click)="respondToRequest('accept')">Accept</button>
   </div>
 </ng-template>
+
+
+<ul class="list-group" *ngIf="socketService.peopleConnected()">
+  <li class="list-group-item" *ngFor="let client of socketService.getClients()">
+    <button class="btn btn-primary btn-sm" style="margin-right: 5px;" (click)="socketService.requestToPlay(client)">Play</button>{{client | truncate : 15}}
+  </li>
+</ul>
+
+<h3 *ngIf="!socketService.peopleConnected()">Nobody is connected right now!!</h3>

@@ -3,7 +3,6 @@ import { NgModule } from '@angular/core';
 
 
 import { AppComponent } from './app.component';
-import { BoardComponent } from './components/board/board.component';
 import { ChessboardComponent } from './components/chessboard/chessboard.component';
 import { SocketsComponent } from './components/sockets/sockets.component';
 import {IoService} from './services/io.service';
@@ -19,7 +18,6 @@ import { AboutComponent } from './components/about/about.component';
 @NgModule({
   declarations: [
     AppComponent,
-    BoardComponent,
     ChessboardComponent,
     SocketsComponent,
     AboutComponent,

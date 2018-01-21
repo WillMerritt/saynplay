@@ -85,6 +85,10 @@ export class IoService implements OnInit {
     this.socket.emit('update clients');
   }
 
+  peopleConnected() {
+    return this.clients.length > 0;
+  }
+
   getClients() {
     return this.clients;
   }
