@@ -7,14 +7,18 @@ import {
   OnInit,
   ViewChild
 } from '@angular/core';
-import * as THREE from 'three';
-import * as TWEEN from '@tweenjs/tween.js';
-import DragControlsAdv from 'drag-controls-adv';
+
 import {Object3D, Vector3} from 'three';
 import {ChessService} from '../../services/chess.service';
 import {IoService} from '../../services/io.service';
+import {Change, Coor, Pos} from '../../globals/classes';
+
+import DragControlsAdv from 'drag-controls-adv';
+import * as THREE from 'three';
+import * as TWEEN from '@tweenjs/tween.js';
 import * as ObjLoader from 'three-obj-loader';
 ObjLoader(THREE);
+
 
 
 @Component({
@@ -32,7 +36,6 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
 
   @ViewChild('canvas')
   private canvasRef: ElementRef;
-  // private controls: THREE.OrbitControls;
   private renderer: THREE.WebGLRenderer;
   private scene: THREE.Scene;
   private loader: THREE.OBJLoader;
@@ -42,7 +45,6 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
   private dragControls: any;
   private objects: Object3D[] = [];
   public tween: any;
-  private group: THREE.Group;
 
   // Camera Properties
   public camV = new THREE.Vector3(0, 0, 0);
@@ -66,17 +68,13 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
   ngOnInit() {
     this.chessService.changes
       .subscribe(
-        data => {
-          console.log('CHANGES: ', data);
-          this.updateScenePieces(data);
-        }
+        data => this.updateScenePieces(data)
       );
   }
 
   ngAfterViewInit() {
     this.initScene();
     this.initLighting();
-    this.initHelpers();
     // this.addShadowBox();
     // this.addCube();
     this.initChess();
@@ -97,12 +95,6 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
     this.camera.position.set(0, 70, 50);
     this.camera.lookAt(new THREE.Vector3(0, 0, 0));
   }
-
-  initHelpers() {
-    // const axesHelper = new THREE.AxisHelper( 50 );
-    // this.scene.add( axesHelper );
-  }
-
 
   initLighting() {
     // Create a DirectionalLight and turn on shadows for the light
@@ -144,7 +136,7 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
 
   removePieceFromScene(piece, coors) {
     const name = this.getDetailName(piece.name, piece.color, coors.row, coors.col);
-    this.scene.children.forEach((child, i) => {
+    this.scene.children.forEach((child) => {
       if (child.name === name) {
         this.scene.remove(child);
       }
@@ -154,16 +146,17 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
 
   animate = (object: Object3D, pos: THREE.Vector3) => {
     const coors = this.getRowColFromPos(pos);
-    const newCoors = this.getRowColFromPos(object.position);
-    let newPos = {x: pos.x, z: pos.z};
+    const newCoors: Coor = this.getRowColFromPos(object.position);
+    let newPos = new Pos(pos.x, pos.z);
     const piece = this.chessService.getPieceFromCoors(coors);
     if (this.chessService.isCompleteMoveLegal(piece, coors, newCoors)) {
       newPos = this.getClosestPos(object.position);
-      const changes = [{'old': coors, 'new': newCoors, 'piece': piece}];
+      const changes = [new Change(coors, newCoors, piece)];
       this.chessService.modifyBoard(piece, coors, newCoors, (removed) => {
         if (removed) {
           this.removePieceFromScene(removed, newCoors);
-          changes.push({'old': newCoors, 'new': null, 'piece': removed});
+
+          changes.push(new Change(newCoors, newCoors, piece));
         }
       });
       this.socketService.updateGame(changes);
@@ -174,9 +167,9 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
   // ________________________________________________________________________
 
   // Give position, get row and col
-  getRowColFromPos(pos: THREE.Vector3) {
+  getRowColFromPos(pos: THREE.Vector3): Coor {
     const temp = new THREE.Vector3(pos.x, 0, pos.z);
-    const result = {'row': 0, 'col': 0};
+    const result = new Coor(0, 0);
     let min = null;
     for (let row = 0; row < 8; row ++) {
       for (let col = 0; col < 8; col += 1) {
@@ -200,24 +193,23 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
     return result;
   }
 
-  getPosFromRowCol(row: number, col: number) {
+  getPosFromRowCol(row: number, col: number): Pos {
     const x = this.getPieceStart(this.boardLengths.size.x, this.boardLengths.min.x, col);
     const z = this.getPieceStart(this.boardLengths.size.y, this.boardLengths.min.y, row);
-    return {x: x, z: z};
+    return new Pos(x, z);
   }
 
 
 
   // Give position, get closest position
-  getClosestPos(pos: THREE.Vector3) {
+  getClosestPos(pos: THREE.Vector3): Pos {
     const square = this.getRowColFromPos(pos);
-    const coors = this.getPosFromRowCol(square.row, square.col);
-    return coors;
+    return this.getPosFromRowCol(square.row, square.col);
   }
 
   // Piece Positioning
 
-  setPiecePosition(row, col, obj) {
+  setPiecePosition(row, col, obj): THREE.Vector3 {
     const sizeBox = new THREE.Box3().setFromObject( obj );
     const position = this.getPosFromRowCol(row, col);
     const height = this.getPieceHeight(sizeBox.min);
@@ -237,7 +229,6 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
   getPieceHeight(min: THREE.Vector3) {
     return -min.y;
   }
-
 
   // ________________________________________________________________________
 
@@ -313,6 +304,9 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
   addPieces() {
     // Add pieces once scene is added
     const board = this.chessService.getGameBoard();
+    const light_wood = new THREE.TextureLoader().load(`assets/images/light_wood.jpg`);
+    const dark_wood = new THREE.TextureLoader().load(`assets/images/dark_wood.jpg`);
+
     board.forEach((row, row_index) => {
       row.forEach((col, col_index) => {
         if (col == null) {
@@ -322,9 +316,8 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
         const piece = col['name'];
         const name = this.getDetailName(piece, color, row_index, col_index);
         this.loader.load(`assets/pieces_comp/${piece}_${color}.obj`, (obj: THREE.Object3D) => {
-          const pieceMat = new THREE.MeshLambertMaterial( { map: new THREE.TextureLoader().load(`assets/images/${color}_wood.jpg`), side: THREE.DoubleSide } );
-
-          obj.traverse(function (child) {
+          const pieceMat = new THREE.MeshLambertMaterial({map: color === 'light' ? light_wood : dark_wood});
+          obj.traverse((child) => {
             if (child instanceof THREE.Mesh) {
               child.material = pieceMat;
             }
@@ -345,27 +338,26 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
     return `${name}_${color}_${row}_${col}`;
   }
 
-  updateScenePieces(data) {
+  updateScenePieces(data: Change[]) {
     data.forEach((change, i) => {
 
-      const row = change.old.row;
-      const col = change.old.col;
+      const row = change.oldCoor.row;
+      const col = change.oldCoor.col;
       const name = this.getDetailName(change.piece.name, change.piece.color, row, col);
 
       this.scene.children.forEach((child, j) => {
         if (name === child.name) {
-          if (change.new == null) {
+          if (change.newCoor == null) {
             this.scene.remove(child);
-            console.log(child);
             return;
           }
           child.name = this.getDetailName(
             change.piece.name,
             change.piece.color,
-            change.new.row,
-            change.new.col);
+            change.newCoor.row,
+            change.newCoor.col);
 
-          const newPos = this.getPosFromRowCol(change.new.row, change.new.col);
+          const newPos = this.getPosFromRowCol(change.newCoor.row, change.newCoor.col);
           this.animatePiece(child, newPos);
         }
       });
@@ -407,27 +399,6 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
   // EXTRA CODE
 
   /*
-  addPlane() {
-    // Create a plane that receives shadows (but does not cast them)
-    const planeGeometry = new THREE.PlaneBufferGeometry( 20, 20, 32, 32 );
-    const planeMaterial = new THREE.MeshStandardMaterial( { color: 0x00ff00 } );
-    const plane = new THREE.Mesh( planeGeometry, planeMaterial );
-    plane.receiveShadow = true;
-    this.scene.add( plane );
-  }
-  addCube() {
-    const geometry = new THREE.BoxGeometry( 40, 40, 40 );
-    for ( let i = 0; i < 200; i ++ ) {
-      const object = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( { color: Math.random() * 0xffffff } ) );
-      object.position.set(Math.random() * 1000 - 500, Math.random() * 1000 - 500, Math.random() * 1000 - 500);
-      object.rotation.set(Math.random() * 2 * Math.PI, Math.random() * 2 * Math.PI, Math.random() * 2 * Math.PI)
-      object.scale.set(Math.random() * 2 + 1, Math.random() * 2 + 1, Math.random() * 2 + 1);
-      object.castShadow = true;
-      object.receiveShadow = true;
-      this.scene.add( object );
-      this.objects.push( object );
-    }
-  }
   addShadowBox() {
     const largeSize = 10000;
     const geometry = new THREE.BoxGeometry(largeSize, largeSize, largeSize);
