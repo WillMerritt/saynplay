@@ -19,6 +19,14 @@ import * as TWEEN from '@tweenjs/tween.js';
 import * as ObjLoader from 'three-obj-loader';
 ObjLoader(THREE);
 
+// Axis Orientation
+//    Y
+//    |
+//    |
+//    |_______ X
+//   / Board goes here
+//  /
+// Z
 
 
 @Component({
@@ -120,9 +128,15 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
   }
 
   rotateCameraHorizontally(alpha: number) {
-    this.camera.position.z = this.radius * Math.cos(alpha);
-    this.camera.position.x  = this.radius * Math.sin(alpha);
-    this.camera.lookAt(new THREE.Vector3(0, 0, 0));
+    const axis = new THREE.Vector3(0, 1, 0);
+    this.camera.position.applyAxisAngle(axis, alpha);
+    // this.camera.position.z = this.radius * Math.cos(alpha);
+    // this.camera.position.x  = this.radius * Math.sin(alpha);
+    // this.camera.lookAt(new THREE.Vector3(0, 0, 0));
+  }
+  rotateCameraVertically(alpha: number) {
+    const axis = new THREE.Vector3(1, 0, 0);
+    this.camera.position.applyAxisAngle(axis, alpha);
   }
 
   animatePiece = (object, newPos) => {
@@ -276,7 +290,11 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
 
   initChess() {
     this.addBoard(() => {
-      this.addPieces();
+      this.chessService.fetchBoard((success) => {
+        if (success) {
+          this.addPieces();
+        }
+      })
     });
   }
 

@@ -40,6 +40,10 @@ app.get('*', (req, res, next) => {
   res.sendFile(__dirname+"/dist/index.html");
 });
 
+app.get('/api/get-start-board', (req, res) => {
+  res.send(createChessBoard());
+})
+
 // Socket / Mongo Config
 
 

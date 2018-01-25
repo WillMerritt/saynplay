@@ -37,9 +37,9 @@ export class IoService implements OnInit {
   }
 
   ngOnInit() {
-    if (this.chessService.wasPlaying()) {
-      this.fetchGame(this.chessService.getGameId());
-    }
+    // if (this.chessService.wasPlaying()) {
+    //   this.fetchGame(this.chessService.getGameId());
+    // }
   }
 
   removeId(array, element) {

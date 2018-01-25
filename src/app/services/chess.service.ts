@@ -1,5 +1,6 @@
 import {EventEmitter, Injectable} from '@angular/core';
 import * as _ from 'underscore';
+import { HttpClient } from '@angular/common/http';
 
 @Injectable()
 export class ChessService {
@@ -10,7 +11,7 @@ export class ChessService {
 
   private gameStarted = false;
 
-  constructor() {
+  constructor(private http: HttpClient) {
 
   }
 
@@ -23,6 +24,10 @@ export class ChessService {
       return true;
     }
     return false;
+  }
+
+  fetchStartGame() {
+    return this.http.get('api/get-start-board');
   }
 
   quitGame() {
