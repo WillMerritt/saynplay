@@ -36,13 +36,15 @@ app.get('/api/json', (req, res) => {
   res.send({'name': 'Alex', 'email': 'atnelon@andrew.cmu.edu'});
 });
 
+app.get('/api/get-start-board', (req, res) => {
+  res.send({'board': createChessBoard()});
+})
+
 app.get('*', (req, res, next) => {
   res.sendFile(__dirname+"/dist/index.html");
 });
 
-app.get('/api/get-start-board', (req, res) => {
-  res.send({'board': createChessBoard()});
-})
+
 
 // Socket / Mongo Config
 
