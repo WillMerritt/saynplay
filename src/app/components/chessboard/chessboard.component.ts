@@ -46,7 +46,8 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
   private canvasRef: ElementRef;
   private renderer: THREE.WebGLRenderer;
   private scene: THREE.Scene;
-  private loader: THREE.OBJLoader;
+  private objLoader: THREE.OBJLoader = new THREE.OBJLoader();
+  private textLoader: THREE.TextureLoader = new THREE.TextureLoader();
   private dirLight: THREE.DirectionalLight;
   private ambientLight: THREE.AmbientLight;
   private mouse: THREE.Vector2 = new THREE.Vector2();
@@ -86,6 +87,7 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
     // this.addShadowBox();
     // this.addCube();
     this.initChess();
+    this.initSphereScene();
     this.startRenderingLoop();
     this.initDraggable();
   }
@@ -112,6 +114,16 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
     this.dirLight = new THREE.DirectionalLight(0xffffff, 0.6);
     this.dirLight.position.set(1, 1, 0);
     this.scene.add(this.dirLight);
+  }
+
+  initSphereScene() {
+    const sphere = new THREE.Mesh(
+        new THREE.SphereGeometry(100, 32, 32),
+        new THREE.MeshBasicMaterial({
+          map: this.textLoader.load('assets/images/cubic_map.jpg')
+        })
+      );
+    this.scene.add(sphere);
   }
 
   // TWEEN ANIMATIONS _____________________________________________
@@ -299,9 +311,8 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
   }
 
   addBoard(callback) {
-    this.loader = new THREE.OBJLoader();
-    this.loader.load('assets/pieces_comp/chessboard.obj', (obj: THREE.Object3D) => {
-      const material = new THREE.MeshStandardMaterial( { map: new THREE.TextureLoader().load('assets/images/marble.jpeg'), side: THREE.DoubleSide } );
+    this.objLoader.load('assets/pieces_comp/chessboard.obj', (obj: THREE.Object3D) => {
+      const material = new THREE.MeshStandardMaterial( { map: this.textLoader.load('assets/images/marble.jpeg'), side: THREE.DoubleSide } );
       obj.traverse(function (child) {
         child.userData.parent = obj;
         if (child instanceof THREE.Mesh) {
@@ -322,8 +333,8 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
   addPieces() {
     // Add pieces once scene is added
     const board = this.chessService.getGameBoard();
-    const light_wood = new THREE.TextureLoader().load(`assets/images/light_wood.jpg`);
-    const dark_wood = new THREE.TextureLoader().load(`assets/images/dark_wood.jpg`);
+    const light_wood = this.textLoader.load(`assets/images/light_wood.jpg`);
+    const dark_wood = this.textLoader.load(`assets/images/dark_wood.jpg`);
 
     board.forEach((row, row_index) => {
       row.forEach((col, col_index) => {
@@ -333,7 +344,7 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
         const color = col['color'];
         const piece = col['name'];
         const name = this.getDetailName(piece, color, row_index, col_index);
-        this.loader.load(`assets/pieces_comp/${piece}_${color}.obj`, (obj: THREE.Object3D) => {
+        this.objLoader.load(`assets/pieces_comp/${piece}_${color}.obj`, (obj: THREE.Object3D) => {
           const pieceMat = new THREE.MeshStandardMaterial({map: color === 'light' ? light_wood : dark_wood});
           obj.traverse((child) => {
             if (child instanceof THREE.Mesh) {
