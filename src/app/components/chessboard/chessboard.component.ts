@@ -149,12 +149,12 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
     this.camera.lookAt(new THREE.Vector3(0, 0, 0));
   }
   rotateCameraVertically(alpha: number) {
-    const z = this.camera.z;
-    const x = this.camera.x;
-    const y = this.camera.y;
+    const z = this.camera.position.z;
+    const x = this.camera.position.x;
+    const y = this.camera.position.y;
     const originRadius = this.camera.position.distanceTo(new THREE.Vector3(0, 0, 0));
     const curTheta = Math.asin(this.camera.y / originRadius);
-    const newTheta = curTheta + newTheta;
+    const newTheta = curTheta + alpha;
 
     const newY = this.radius * Math.sin(newTheta);
     const d = Math.sqrt(originRadius**2 - newY**2);
