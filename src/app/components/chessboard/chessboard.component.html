@@ -5,6 +5,8 @@
   <div class="col-3 text-center">
     <button class="btn btn-primary btn-block" (click)="rotateCamera('left')">Rotate Left</button>
     <button class="btn btn-primary btn-block" (click)="rotateCamera('right')">Rotate Right</button>
+    <button class="btn btn-primary btn-block" (click)="rotateCameraVertically(0.1)">Angle UP</button>
+    <button class="btn btn-primary btn-block" (click)="rotateCameraVertically(-0.1)">Angle DOWN</button>
     <button class="btn btn-primary btn-block" (click)="quitGame()">Quit Game</button>
 
     <hr>

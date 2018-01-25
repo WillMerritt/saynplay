@@ -56,7 +56,8 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
   public tween: any;
 
   // Camera Properties
-  public camV = new THREE.Vector3(0, 0, 0);
+  public camRotation = new THREE.Vector3(0, 0, 0);
+  public camAngle = new THREE.Vector3(0, 0, 0);
   public radius = 50;
   public increment = Math.PI;
 
@@ -102,7 +103,7 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
       this.nearClippingPane,
       this.farClippingPane
     );
-    this.camera.position.set(0, 70, 50);
+    this.camera.position.set(0, 70, this.radius);
     this.camera.lookAt(new THREE.Vector3(0, 0, 0));
   }
 
@@ -118,7 +119,7 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
 
   initSphereScene() {
     const sphere = new THREE.Mesh(
-        new THREE.SphereGeometry(100, 32, 32),
+        new THREE.SphereGeometry(9999, 32, 32),
         new THREE.MeshBasicMaterial({
           map: this.textLoader.load('assets/images/cubic_map.jpg'),
           side: THREE.DoubleSide
@@ -130,9 +131,9 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
   // TWEEN ANIMATIONS _____________________________________________
 
   rotateCamera(dir: string) {
-    const newX = dir === 'left' ? this.camV.x - this.increment : this.camV.x + this.increment;
+    const newAlpha = dir === 'left' ? this.camV.x - this.increment : this.camV.x + this.increment;
     this.tween = new TWEEN.Tween(this.camV)
-      .to(new THREE.Vector3(newX, 0, 0), 1000)
+      .to(new THREE.Vector3(newAlpha, 0, 0), 1000)
       .start()
       .easing(TWEEN.Easing.Exponential.InOut)
       .onUpdate(() => {
@@ -141,15 +142,31 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
   }
 
   rotateCameraHorizontally(alpha: number) {
-    const axis = new THREE.Vector3(0, 1, 0);
-    this.camera.position.applyAxisAngle(axis, alpha);
-    // this.camera.position.z = this.radius * Math.cos(alpha);
-    // this.camera.position.x  = this.radius * Math.sin(alpha);
-    // this.camera.lookAt(new THREE.Vector3(0, 0, 0));
+    // const axis = new THREE.Vector3(0, 1, 0);
+    // this.camera.position.applyAxisAngle(axis, alpha);
+    this.camera.position.z = this.radius * Math.cos(alpha);
+    this.camera.position.x  = this.radius * Math.sin(alpha);
+    this.camera.lookAt(new THREE.Vector3(0, 0, 0));
   }
   rotateCameraVertically(alpha: number) {
-    const axis = new THREE.Vector3(1, 0, 0);
-    this.camera.position.applyAxisAngle(axis, alpha);
+    const z = this.camera.z;
+    const x = this.camera.x;
+    const y = this.camera.y;
+    const originRadius = this.camera.position.distanceTo(new THREE.Vector3(0, 0, 0));
+    const curTheta = Math.asin(this.camera.y / originRadius);
+    const newTheta = curTheta + newTheta;
+
+    const newY = this.radius * Math.sin(newTheta);
+    const d = Math.sqrt(originRadius**2 - newY**2);
+    const alpha = Math.atan(x / z);
+    const newZ = d * Math.cos(alpha);
+    const newX = d * Math.sin(alpha);
+    this.camera.position.set(newX, newY, newZ);
+    this.camera.lookAt(new THREE.Vector3(0, 0, 0));
+
+
+    // const axis = new THREE.Vector3(1, 0, 0);
+    // this.camera.position.applyAxisAngle(axis, alpha);
   }
 
   animatePiece = (object, newPos) => {
