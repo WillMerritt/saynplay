@@ -26,8 +26,17 @@ export class ChessService {
     return false;
   }
 
-  fetchStartGame() {
-    return this.http.get('api/get-start-board');
+  fetchStartGame(callback) {
+    this.http.get('api/get-start-board')
+      .subscribe(
+        data => {
+          this.board = board;
+          callback(true);
+        },
+        err => {
+          callback(false);
+        }
+      )
   }
 
   quitGame() {
