@@ -30,7 +30,7 @@ export class ChessService {
     this.http.get('api/get-start-board')
       .subscribe(
         data => {
-          this.board = board;
+          this.board = data;
           callback(true);
         },
         err => {
