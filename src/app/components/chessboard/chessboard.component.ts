@@ -153,7 +153,7 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
     const x = this.camera.position.x;
     const y = this.camera.position.y;
     const originRadius = this.camera.position.distanceTo(new THREE.Vector3(0, 0, 0));
-    const curTheta = Math.asin(this.camera.y / originRadius);
+    const curTheta = Math.asin(y / originRadius);
     const newTheta = curTheta + offsetTheta;
 
     const newY = this.radius * Math.sin(newTheta);
