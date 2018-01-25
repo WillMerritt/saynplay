@@ -131,13 +131,13 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
   // TWEEN ANIMATIONS _____________________________________________
 
   rotateCamera(dir: string) {
-    const newAlpha = dir === 'left' ? this.camV.x - this.increment : this.camV.x + this.increment;
-    this.tween = new TWEEN.Tween(this.camV)
+    const newAlpha = dir === 'left' ? this.camRotation.x - this.increment : this.camRotation.x + this.increment;
+    this.tween = new TWEEN.Tween(this.camRotation)
       .to(new THREE.Vector3(newAlpha, 0, 0), 1000)
       .start()
       .easing(TWEEN.Easing.Exponential.InOut)
       .onUpdate(() => {
-        this.rotateCameraHorizontally(this.camV.x);
+        this.rotateCameraHorizontally(this.camRotation.x);
       });
   }
 
@@ -148,13 +148,13 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
     this.camera.position.x  = this.radius * Math.sin(alpha);
     this.camera.lookAt(new THREE.Vector3(0, 0, 0));
   }
-  rotateCameraVertically(alpha: number) {
+  rotateCameraVertically(offsetTheta: number) {
     const z = this.camera.position.z;
     const x = this.camera.position.x;
     const y = this.camera.position.y;
     const originRadius = this.camera.position.distanceTo(new THREE.Vector3(0, 0, 0));
     const curTheta = Math.asin(this.camera.y / originRadius);
-    const newTheta = curTheta + alpha;
+    const newTheta = curTheta + offsetTheta;
 
     const newY = this.radius * Math.sin(newTheta);
     const d = Math.sqrt(originRadius**2 - newY**2);
