@@ -120,7 +120,8 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
     const sphere = new THREE.Mesh(
         new THREE.SphereGeometry(100, 32, 32),
         new THREE.MeshBasicMaterial({
-          map: this.textLoader.load('assets/images/cubic_map.jpg')
+          map: this.textLoader.load('assets/images/cubic_map.jpg'),
+          side: THREE.DoubleSide
         })
       );
     this.scene.add(sphere);
