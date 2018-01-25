@@ -31,7 +31,7 @@ export class ChessService {
       .subscribe(
         data => {
           console.log(data);
-          this.board = data.board;
+          this.board = data['board'];
           callback(true);
         },
         err => {
