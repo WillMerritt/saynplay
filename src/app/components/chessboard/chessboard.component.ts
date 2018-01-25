@@ -334,7 +334,7 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
         const piece = col['name'];
         const name = this.getDetailName(piece, color, row_index, col_index);
         this.loader.load(`assets/pieces_comp/${piece}_${color}.obj`, (obj: THREE.Object3D) => {
-          const pieceMat = new THREE.MeshLambertMaterial({map: color === 'light' ? light_wood : dark_wood});
+          const pieceMat = new THREE.MeshStandardMaterial({map: color === 'light' ? light_wood : dark_wood});
           obj.traverse((child) => {
             if (child instanceof THREE.Mesh) {
               child.material = pieceMat;

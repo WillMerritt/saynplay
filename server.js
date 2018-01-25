@@ -41,7 +41,7 @@ app.get('*', (req, res, next) => {
 });
 
 app.get('/api/get-start-board', (req, res) => {
-  res.send(createChessBoard());
+  res.send({'board': createChessBoard()});
 })
 
 // Socket / Mongo Config
