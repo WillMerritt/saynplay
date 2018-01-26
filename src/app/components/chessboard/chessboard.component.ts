@@ -4,7 +4,7 @@ import {
   ElementRef,
   HostListener,
   Input,
-  OnInit, TemplateRef,
+  OnInit, Renderer2, TemplateRef,
   ViewChild
 } from '@angular/core';
 
@@ -74,7 +74,7 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
   // Chess Properties
   public boardLengths: {size: THREE.Vector3, min: THREE.Vector3, max: THREE.Vector3};
   public boardMultiplier = 8 / 9.2; // ratio of squares to to total squares from edge to edge
-  public piecePos: THREE.Vector3;
+  public piecePos = new THREE.Vector3();
 
   // Lifecycle Hooks
   constructor(public chessService: ChessService,
@@ -337,19 +337,20 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
       new THREE.Vector3(0, 1, 0)
       // this.animate
     );
-    // this.dragControls.addEventListener('dragstart', (event, object) => {
-    //    this.objPos.copy( object.position );
-    // });
-    // this.dragControls.addEventListener('dragend', (event, object) => {
-    //    this.animate(object, this.objPos);
-    // });
-    this.renderer2.listen(this.dragControls, 'dragstart', (event, obj) => {
-      this.objPos.copy( obj.position );
+
+    this.renderer2.listen(this.dragControls, 'dragstart', (event) => {
+      // this.piecePos.copy( obj.position );
+      console.log('DRAG START...');
+      console.log(event.object);
+      this.piecePos.copy(event.object.position);
     });
 
-    this.renderer2.listen(this.dragControls, 'dragend', (event, obj) => {
-      this.animate(obj, this.objPos);
-    })
+
+    this.renderer2.listen(this.dragControls, 'dragend', (event) => {
+      // this.animate(obj, this.piecePos);
+      console.log('DRAG END...');
+      this.animate(event.object, this.piecePos);
+    });
   }
 
 
