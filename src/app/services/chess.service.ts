@@ -8,15 +8,14 @@ export class ChessService {
   private id;
   private startTime;
   public changes: EventEmitter<any> = new EventEmitter();
-
-  private gameStarted = false;
+  public boardChanged: EventEmitter<any> = new EventEmitter();
 
   constructor(private http: HttpClient) {
 
   }
 
   isPlaying() {
-    return this.gameStarted;
+    return this.id && this.id !== '';
   }
 
   wasPlaying() {
@@ -30,7 +29,6 @@ export class ChessService {
     this.http.get('api/get-start-board')
       .subscribe(
         data => {
-          console.log(data);
           this.board = data['board'];
           callback(true);
         },
@@ -38,22 +36,23 @@ export class ChessService {
           console.log(err);
           callback(false);
         }
-      )
+      );
   }
 
   quitGame() {
-    this.board = null;
+    // this.board = null;
     this.id = null;
-    this.startTime = null;
-    this.gameStarted = false;
+    // this.startTime = null;
+    // this.gameStarted = false;
+    localStorage.removeItem('id');
   }
 
   createGame(board, startTime, id) {
+    console.log('CREATING THE GAME');
     this.board = board;
     this.startTime = startTime;
     this.id = id;
-    this.gameStarted = true;
-
+    this.boardChanged.emit();
     this.setGameInStorage(id);
   }
 
@@ -68,12 +67,12 @@ export class ChessService {
     return this.board;
   }
 
-  updateGame(board, startTime, id, changes) {
+  updateGame(board, startTime, id) {
     this.board = board;
     this.startTime = startTime;
     this.id = id;
-    this.gameStarted = true;
-    this.changes.emit(changes);
+    // this.changes.emit(changes);
+    this.boardChanged.emit();
   }
 
   setGameInStorage(id) {
@@ -82,15 +81,7 @@ export class ChessService {
   getPieceFromCoors(coors) {
     return this.board[coors.row][coors.col];
   }
-  // getPieceFromNameColor(name: string, color: string) {
-  //   for (const row of this.board) {
-  //     for (const col of row) {
-  //       if (col !== null && col.name === name && col.color === color) {
-  //         return col;
-  //       }
-  //     }
-  //   }
-  // }
+
   getCoorsFromPiece(piece) {
     const coors = {row: 0, col: 0};
     this.board.forEach((row, i) => {

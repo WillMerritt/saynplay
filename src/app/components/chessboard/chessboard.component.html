@@ -1,17 +1,45 @@
 <div class="row">
-  <div class="col">
-    <canvas #canvas style="height: 550px; width: 600px;"></canvas>
+  <div class="col-md-8 col-12">
+    <canvas #canvas ></canvas>
   </div>
-  <div class="col-3 text-center">
-    <button class="btn btn-primary btn-block" (click)="rotateCamera('left')">Rotate Left</button>
-    <button class="btn btn-primary btn-block" (click)="rotateCamera('right')">Rotate Right</button>
-    <button class="btn btn-primary btn-block" (click)="rotateCameraVertically(0.1)">Angle UP</button>
-    <button class="btn btn-primary btn-block" (click)="rotateCameraVertically(-0.1)">Angle DOWN</button>
-    <button class="btn btn-primary btn-block" (click)="quitGame()">Quit Game</button>
+  <div class="col-md-4 col-12">
+    <tabset>
+      <tab heading="Controls" id="tab1">
+        <button class="btn btn-primary btn-block" (click)="rotateCamera('left')">Rotate Left</button>
+        <button class="btn btn-primary btn-block" (click)="rotateCamera('right')">Rotate Right</button>
+        <button class="btn btn-primary btn-block" (click)="rotateCameraVertically(0.1)">Angle UP</button>
+        <button class="btn btn-primary btn-block" (click)="rotateCameraVertically(-0.1)">Angle DOWN</button>
+        <button class="btn btn-primary btn-block" (click)="quitGame()">Quit Game</button>
+      </tab>
+      <tab heading="Players">
+        <ul class="list-group" *ngIf="socketService.peopleConnected()">
+          <li class="list-group-item" *ngFor="let client of socketService.getClients()">
+            <button class="btn btn-primary btn-sm" style="margin-right: 5px;" (click)="socketService.requestToPlay(client)">Play</button>{{client | truncate : 15}}
+          </li>
+        </ul>
 
-    <hr>
+        <p *ngIf="!socketService.peopleConnected()">Nobody is connected right now.</p>
+      </tab>
+    </tabset>
   </div>
 </div>
+
+
+
+<!--Previous Game Modal-->
+<ng-template #template>
+  <div class="modal-header">
+    <h3 class="modal-title pull-left">Would you like to resume the previous game?</h3>
+
+    <button type="button" class="close pull-right" aria-label="Close" (click)="modalRef.hide()">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="pull-left btn btn-danger" (click)="quitGame()">No</button>
+    <button type="button" class="pull-right btn btn-primary" (click)="resumeGame()">Yes</button>
+  </div>
+</ng-template>
 
 
 

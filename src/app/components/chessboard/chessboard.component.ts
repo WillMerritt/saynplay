@@ -4,7 +4,7 @@ import {
   ElementRef,
   HostListener,
   Input,
-  OnInit,
+  OnInit, TemplateRef,
   ViewChild
 } from '@angular/core';
 
@@ -17,6 +17,7 @@ import DragControlsAdv from 'drag-controls-adv';
 import * as THREE from 'three';
 import * as TWEEN from '@tweenjs/tween.js';
 import * as ObjLoader from 'three-obj-loader';
+import {BsModalRef, BsModalService} from 'ngx-bootstrap';
 ObjLoader(THREE);
 
 // Axis Orientation
@@ -35,6 +36,9 @@ ObjLoader(THREE);
   styleUrls: ['./chessboard.component.css']
 })
 export class ChessboardComponent implements AfterViewInit, OnInit {
+  // Modal Controls
+  modalRef: BsModalRef;
+  @ViewChild('template') modalTemp;
 
   // Three Elements
   private camera: THREE.PerspectiveCamera;
@@ -59,7 +63,7 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
   public camRotation = new THREE.Vector3(0, 0, 0);
   public camAngle = new THREE.Vector3(0, 0, 0);
   public radius = 50;
-  public increment = Math.PI;
+  public increment = Math.PI / 2;
 
 
   /* STAGE PROPERTIES */
@@ -73,12 +77,22 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
 
   // Lifecycle Hooks
   constructor(public chessService: ChessService,
-              public socketService: IoService) { }
+              public socketService: IoService,
+              private modalService: BsModalService) { }
 
   ngOnInit() {
+    if (this.chessService.wasPlaying()) {
+      this.openModal(this.modalTemp);
+    }
+
     this.chessService.changes
       .subscribe(
         data => this.updateScenePieces(data)
+      );
+
+    this.chessService.boardChanged
+      .subscribe(
+        () => this.animateToNewBoard(this.chessService.getGameBoard())
       );
   }
 
@@ -88,9 +102,15 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
     // this.addShadowBox();
     // this.addCube();
     this.initChess();
-    this.initSphereScene();
+    // this.initSphereScene();
     this.startRenderingLoop();
     this.initDraggable();
+    this.onResize();
+  }
+
+  // Modal Control
+  openModal(template: TemplateRef<any>) {
+    this.modalRef = this.modalService.show(template);
   }
 
   // Initializer
@@ -121,11 +141,34 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
     const sphere = new THREE.Mesh(
         new THREE.SphereGeometry(9999, 32, 32),
         new THREE.MeshBasicMaterial({
-          map: this.textLoader.load('assets/images/cubic_map.jpg'),
+          // map: this.textLoader.load('assets/images/cubic_map.jpg'),
+          color: 0xff00ff,
           side: THREE.DoubleSide
         })
       );
     this.scene.add(sphere);
+  }
+
+  animateToNewBoard(board) {
+    console.log('ANIMATING THE BOARD');
+    board.forEach((row, i) => {
+      row.forEach((col, j) => {
+        this.scene.children.forEach((child) => {
+          if (!col) {
+            return;
+          }
+          const name = this.getDetailName(col.name, col.color, i, j);
+          if (name === child.name) {
+            const newPos = this.getPosFromRowCol(i, j);
+            console.log(child.name, newPos);
+            this.animatePiece(child, newPos);
+          } else if (child.name !== '') {
+            // when a piece was removed
+            // load it in the correct place
+          }
+        });
+      });
+    });
   }
 
   // TWEEN ANIMATIONS _____________________________________________
@@ -144,8 +187,10 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
   rotateCameraHorizontally(alpha: number) {
     // const axis = new THREE.Vector3(0, 1, 0);
     // this.camera.position.applyAxisAngle(axis, alpha);
-    this.camera.position.z = this.radius * Math.cos(alpha);
-    this.camera.position.x  = this.radius * Math.sin(alpha);
+    const v = new THREE.Vector3(0, this.camera.position.y, 0);
+    const radius = this.camera.position.distanceTo(v);
+    this.camera.position.z = radius * Math.cos(alpha);
+    this.camera.position.x  = radius * Math.sin(alpha);
     this.camera.lookAt(new THREE.Vector3(0, 0, 0));
   }
   rotateCameraVertically(offsetTheta: number) {
@@ -156,15 +201,21 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
     const curTheta = Math.asin(y / originRadius);
     const newTheta = curTheta + offsetTheta;
 
-    const newY = this.radius * Math.sin(newTheta);
-    const d = Math.sqrt(originRadius**2 - newY**2);
+    const newY = originRadius * Math.sin(newTheta);
+    const d = Math.sqrt(originRadius ** 2 - newY ** 2);
     const alpha = Math.atan(x / z);
     const newZ = d * Math.cos(alpha);
     const newX = d * Math.sin(alpha);
-    this.camera.position.set(newX, newY, newZ);
-    this.camera.lookAt(new THREE.Vector3(0, 0, 0));
+    // this.camera.position.set(newX, newY, newZ);
+    // this.camera.lookAt(new THREE.Vector3(0, 0, 0));
 
-
+    this.tween = new TWEEN.Tween(this.camera.position)
+      .to(new THREE.Vector3(newX, newY, newZ), 500)
+      .start()
+      .easing(TWEEN.Easing.Exponential.InOut)
+      .onUpdate(() => {
+        this.camera.lookAt(new THREE.Vector3(0, 0, 0));
+      });
     // const axis = new THREE.Vector3(1, 0, 0);
     // this.camera.position.applyAxisAngle(axis, alpha);
   }
@@ -203,7 +254,9 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
           changes.push(new Change(newCoors, newCoors, piece));
         }
       });
-      this.socketService.updateGame(changes);
+      if (this.chessService.isPlaying()) {
+        this.socketService.updateGame(changes);
+      }
     }
     this.animatePiece(object, newPos);
   }
@@ -421,6 +474,12 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
 
   quitGame() {
     this.chessService.quitGame();
+    this.modalRef.hide();
+  }
+
+  resumeGame() {
+    this.socketService.fetchGame(this.chessService.getGameId());
+    this.modalRef.hide();
   }
 
   // Event Handlers
@@ -431,13 +490,14 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
   }
 
   @HostListener('window:resize', ['$event'])
-  onResize(event: any) {
-    // this.canvas.style.width = '100%';
-    // this.canvas.style.height = '80vh';
+  onResize() {
+    this.canvas.style.width = '100%';
+    this.canvas.style.height = `${this.canvas.clientWidth * 0.9}px`;
     this.renderer.setSize(this.canvas.clientWidth, this.canvas.clientHeight);
     this.camera.aspect = this.getAspectRatio();
     this.camera.updateProjectionMatrix();
   }
+
   @HostListener('mousemove', ['$event'])
   onMouseMove(event: any) {
     this.updateMouse(event);

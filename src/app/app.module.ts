@@ -7,10 +7,12 @@ import { ChessboardComponent } from './components/chessboard/chessboard.componen
 import { SocketsComponent } from './components/sockets/sockets.component';
 import {IoService} from './services/io.service';
 import {HttpClientModule} from '@angular/common/http';
-import { ModalModule } from 'ngx-bootstrap';
+import {ModalModule, TabsModule} from 'ngx-bootstrap';
 import {ChessService} from './services/chess.service';
 import { TruncateModule } from 'ng2-truncate';
 import { AboutComponent } from './components/about/about.component';
+import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
+// import { MatTabsModule} from '@angular/material';
 
 
 @NgModule({
@@ -25,7 +27,10 @@ import { AboutComponent } from './components/about/about.component';
     BrowserModule,
     HttpClientModule,
     ModalModule.forRoot(),
-    TruncateModule
+    TruncateModule,
+    BrowserAnimationsModule,
+    // MatTabsModule
+    TabsModule.forRoot()
   ],
   providers: [
     IoService,
