@@ -5,8 +5,8 @@
   <div class="col-md-4 col-12">
     <tabset>
       <tab heading="Controls" id="tab1">
-        <button class="btn btn-primary btn-block" (click)="rotateCamera('left')">Rotate Left</button>
-        <button class="btn btn-primary btn-block" (click)="rotateCamera('right')">Rotate Right</button>
+        <button class="btn btn-primary btn-block" (click)="rotateCameraHorizontally(-Math.PI)">Rotate Left</button>
+        <button class="btn btn-primary btn-block" (click)="rotateCameraHorizontally(Math.PI)">Rotate Right</button>
         <button class="btn btn-primary btn-block" (click)="rotateCameraVertically(0.1)">Angle UP</button>
         <button class="btn btn-primary btn-block" (click)="rotateCameraVertically(-0.1)">Angle DOWN</button>
         <button class="btn btn-primary btn-block" (click)="quitGame()">Quit Game</button>

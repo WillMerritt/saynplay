@@ -74,11 +74,13 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
   // Chess Properties
   public boardLengths: {size: THREE.Vector3, min: THREE.Vector3, max: THREE.Vector3};
   public boardMultiplier = 8 / 9.2; // ratio of squares to to total squares from edge to edge
+  public piecePos: THREE.Vector3;
 
   // Lifecycle Hooks
   constructor(public chessService: ChessService,
               public socketService: IoService,
-              private modalService: BsModalService) { }
+              private modalService: BsModalService,
+              private renderer2: Renderer2) { }
 
   ngOnInit() {
     if (this.chessService.wasPlaying()) {
@@ -173,26 +175,24 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
 
   // TWEEN ANIMATIONS _____________________________________________
 
-  rotateCamera(dir: string) {
-    const newAlpha = dir === 'left' ? this.camRotation.x - this.increment : this.camRotation.x + this.increment;
+  rotateCameraHorizontally(increment) {
+    // const newAlpha = dir === 'left' ? this.camRotation.x - this.increment : this.camRotation.x + this.increment;
+    const newAlpha = this.camRotation.x + increment;
     this.tween = new TWEEN.Tween(this.camRotation)
       .to(new THREE.Vector3(newAlpha, 0, 0), 1000)
       .start()
       .easing(TWEEN.Easing.Exponential.InOut)
       .onUpdate(() => {
-        this.rotateCameraHorizontally(this.camRotation.x);
+        const alpha = this.camRotation.x;
+        const v = new THREE.Vector3(0, this.camera.position.y, 0);
+        const radius = this.camera.position.distanceTo(v);
+        this.camera.position.z = radius * Math.cos(alpha);
+        this.camera.position.x  = radius * Math.sin(alpha);
+        this.camera.lookAt(new THREE.Vector3(0, 0, 0));
       });
   }
 
-  rotateCameraHorizontally(alpha: number) {
-    // const axis = new THREE.Vector3(0, 1, 0);
-    // this.camera.position.applyAxisAngle(axis, alpha);
-    const v = new THREE.Vector3(0, this.camera.position.y, 0);
-    const radius = this.camera.position.distanceTo(v);
-    this.camera.position.z = radius * Math.cos(alpha);
-    this.camera.position.x  = radius * Math.sin(alpha);
-    this.camera.lookAt(new THREE.Vector3(0, 0, 0));
-  }
+
   rotateCameraVertically(offsetTheta: number) {
     const z = this.camera.position.z;
     const x = this.camera.position.x;
@@ -334,9 +334,22 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
       this.objects,
       this.camera,
       this.renderer.domElement,
-      new THREE.Vector3(0, 1, 0),
-      this.animate
+      new THREE.Vector3(0, 1, 0)
+      // this.animate
     );
+    // this.dragControls.addEventListener('dragstart', (event, object) => {
+    //    this.objPos.copy( object.position );
+    // });
+    // this.dragControls.addEventListener('dragend', (event, object) => {
+    //    this.animate(object, this.objPos);
+    // });
+    this.renderer2.listen(this.dragControls, 'dragstart', (event, obj) => {
+      this.objPos.copy( obj.position );
+    });
+
+    this.renderer2.listen(this.dragControls, 'dragend', (event, obj) => {
+      this.animate(obj, this.objPos);
+    })
   }
 
 
