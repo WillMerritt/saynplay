@@ -163,12 +163,14 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
     console.log('Animating the new board ...');
      board.forEach((row, i) => {
        row.forEach((piece, j) => {
+         if (piece === null) return;
          const name = piece['name'];
          const id = piece['id'];
          const color = piece['color'];
          const obj = this.scene.getObjectByName(id);
          if (obj) {
            console.log(obj);
+           this.animatePiece(obj, this.getPosFromRowCol(i, j));
          }
        })
     })
@@ -217,8 +219,6 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
       .onUpdate(() => {
         this.camera.lookAt(new THREE.Vector3(0, 0, 0));
       });
-    // const axis = new THREE.Vector3(1, 0, 0);
-    // this.camera.position.applyAxisAngle(axis, alpha);
   }
 
   animatePiece(object, newPos) {
@@ -234,7 +234,7 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
     // const name = this.getDetailName(piece.name, piece.color, coors.row, coors.col);
     const obj = this.scene.getObjectByName(piece['id']);
     if (obj) {
-      this.scene.remove(obj);
+      obj.visible = false;
     }
   }
 
