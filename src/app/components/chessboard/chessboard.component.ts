@@ -166,11 +166,10 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
          const name = piece['name'];
          const id = piece['id'];
          const color = piece['color'];
-         this.scene.children.forEach(child => {
-           if (child.id == id) {
-             console.log(child);
-           }
-         })
+         const obj = this.scene.getObjectByName(id);
+         if (obj) {
+           console.log(obj);
+         }
        })
     })
   }
@@ -231,13 +230,12 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
       });
   }
 
-  removePieceFromScene(piece, coors) {
-    const name = this.getDetailName(piece.name, piece.color, coors.row, coors.col);
-    this.scene.children.forEach((child) => {
-      if (child.name === name) {
-        this.scene.remove(child);
-      }
-    });
+  removePieceFromScene(piece) {
+    // const name = this.getDetailName(piece.name, piece.color, coors.row, coors.col);
+    const obj = this.scene.getObjectByName(piece['id']);
+    if (obj) {
+      this.scene.remove(obj);
+    }
   }
 
   movePiece(object: Object3D, pos: THREE.Vector3, callback) {
@@ -247,10 +245,10 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
     const piece = this.chessService.getPieceFromCoors(coors);
     if (this.chessService.isCompleteMoveLegal(piece, coors, newCoors)) {
       newPos = this.getClosestPos(object.position);
-      object.name = this.getDetailName(piece.name, piece.color, newCoors.row, newCoors.col);
+      // object.name = this.getDetailName(piece.name, piece.color, newCoors.row, newCoors.col);
       this.chessService.modifyBoard(piece, coors, newCoors, (removed) => {
         if (removed) {
-          this.removePieceFromScene(removed, newCoors);
+          this.removePieceFromScene(removed);
         }
         callback(newPos);
       });
@@ -438,7 +436,8 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
         const id = col['id'];
         const color = col['color'];
         const piece = col['name'];
-        const name = this.getDetailName(piece, color, row_index, col_index);
+        // const name = this.getDetailName(piece, color, row_index, col_index);
+        const name = id;
         this.objLoader.load(`assets/pieces_comp/${piece}_${color}.obj`, (obj: THREE.Object3D) => {
           const pieceMat = new THREE.MeshStandardMaterial({map: color === 'light' ? light_wood : dark_wood});
           obj.traverse((child) => {
@@ -451,7 +450,7 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
           obj.castShadow = true;
           obj.receiveShadow = true;
           obj.name = name;
-          obj.id = id;
+          // obj.id = id;
           this.scene.add(obj);
           this.objects.push(obj);
         });
