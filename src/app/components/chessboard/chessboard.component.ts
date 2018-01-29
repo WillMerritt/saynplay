@@ -160,7 +160,6 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
   }
 
   animateToNewBoard(board) {
-    console.log('Animating the new board ...');
      board.forEach((row, i) => {
        row.forEach((piece, j) => {
          if (piece === null) return;
@@ -169,7 +168,6 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
          const color = piece['color'];
          const obj = this.scene.getObjectByName(id);
          if (obj) {
-           console.log(obj);
            this.animatePiece(obj, this.getPosFromRowCol(i, j));
          }
        })
@@ -337,7 +335,6 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
     this.renderer2.listen(this.dragControls, 'dragstart', (event) => {
       this.controls.enabled = false;
       this.piecePos.copy(event.object.position);
-      console.log(event.object.name);
     });
 
 
@@ -371,7 +368,7 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
 
     const info = this.deviceService.getDeviceInfo();
     console.log(info);
-    if (info.os === 'android' || info.os === 'iphone') {
+    if (info['device'] === 'android' || info['device'] === 'iphone') {
       this.controls.enableZoom = false;
       this.controls.enableRotate = false;
     }
@@ -470,34 +467,6 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
   getIndexName(name, color, index) {
     return `${name}_${color}_${index}`;
   }
-
-  // updateScenePieces(data: Change[]) {
-  //   data.forEach((change, i) => {
-  //
-  //     const row = change.oldCoor.row;
-  //     const col = change.oldCoor.col;
-  //     const name = this.getDetailName(change.piece.name, change.piece.color, row, col);
-  //
-  //     this.scene.children.forEach((child, j) => {
-  //       if (name === child.name) {
-  //         if (change.newCoor == null) {
-  //           this.scene.remove(child);
-  //           return;
-  //         }
-  //         child.name = this.getDetailName(
-  //           change.piece.name,
-  //           change.piece.color,
-  //           change.newCoor.row,
-  //           change.newCoor.col);
-  //
-  //         const newPos = this.getPosFromRowCol(change.newCoor.row, change.newCoor.col);
-  //         this.animatePiece(child, newPos);
-  //       }
-  //     });
-  //   });
-  // }
-
-
 
   // Utilities
 
