@@ -65,11 +65,11 @@ export class IoService implements OnInit {
     this.socket.emit('fetch game', game_id);
     // console.log('fetching game');
   }
-  // updateGame(data) {
-  //   const board = this.chessService.getGameBoard();
-  //   const id = this.chessService.getGameId();
-  //   this.socket.emit('update game', board, id, data);
-  // }
+  updateGame() {
+    const board = this.chessService.getGameBoard();
+    const id = this.chessService.getGameId();
+    this.socket.emit('update game', board, id);
+  }
 
   requestToPlay(socket: string) {
     this.socket.emit('request to play', socket);

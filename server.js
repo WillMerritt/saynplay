@@ -93,12 +93,12 @@ MongoClient.connect(mongoUri, (err, client) => {
       })
     });
 
-    socket.on('update game', (board, game_id, data) => {
+    socket.on('update game', (board, game_id) => {
       updateGameById(db, game_id, board, (res) => {
         findGameById(db, game_id, (game) => {
           const id = game['_id'];
           socket.join(`${id}`);
-          io.to(`${id}`).emit('game update', game, data);
+          io.to(`${id}`).emit('game update', game);
         })
       })
     });

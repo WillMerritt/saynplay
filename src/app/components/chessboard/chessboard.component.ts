@@ -345,6 +345,9 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
       this.controls.enabled = true;
       this.movePiece(event.object, this.piecePos, (pos) => {
         this.animatePiece(event.object, pos);
+        if (this.chessService.isPlaying()) {
+          this.socketService.updateGame();
+        }
       });
     });
   }
