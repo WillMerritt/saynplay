@@ -24,6 +24,7 @@ import * as THREE from 'three';
 import * as TWEEN from '@tweenjs/tween.js';
 
 import {BsModalRef, BsModalService} from 'ngx-bootstrap';
+import { Ng2DeviceService } from 'ng2-device-detector';
 
 // Axis Orientation
 //    Y
@@ -86,7 +87,8 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
   constructor(public chessService: ChessService,
               public socketService: IoService,
               private modalService: BsModalService,
-              private renderer2: Renderer2) { }
+              private renderer2: Renderer2,
+              private deviceService: Ng2DeviceService) { }
 
   ngOnInit() {
     if (this.chessService.wasPlaying()) {
@@ -350,7 +352,12 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
     this.controls.update();
 
-    // this.controls.enableZoom = false;
+    this.controls.enableZoom = false;
+    this.controls.enableRotate = false;
+    
+    const info = this.deviceService.getDeviceInfo();
+    console.log(info);
+
 
     this.camera.updateMatrixWorld(true);
     // this.trackControls = new TrackballControls( this.camera, this.renderer );

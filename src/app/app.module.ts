@@ -12,6 +12,7 @@ import {ChessService} from './services/chess.service';
 import { TruncateModule } from 'ng2-truncate';
 import { AboutComponent } from './components/about/about.component';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
+import { Ng2DeviceDetectorModule } from 'ng2-device-detector';
 // import { MatTabsModule} from '@angular/material';
 
 
@@ -30,7 +31,9 @@ import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
     TruncateModule,
     BrowserAnimationsModule,
     // MatTabsModule
-    TabsModule.forRoot()
+    TabsModule.forRoot(),
+    Ng2DeviceDetectorModule.forRoot()
+
   ],
   providers: [
     IoService,
