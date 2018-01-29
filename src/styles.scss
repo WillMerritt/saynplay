@@ -1,15 +1,14 @@
 /* You can add global styles to this file, and also import other style files */
 
+@import "variables";
+
 button:hover, a:hover {
   cursor: pointer;
 }
 
+body {
+  background: -webkit-gradient(linear, left top, left bottom, from($wheat), to($wenge)) fixed;
+}
 
-// Colors
 
-$dark-purple: #401F3E;
-$wenge: #635255;
-$wheat: #F6D8AE;
-$dark-cerulean: #083D77;
-$paradise-pink: #DA4167;
 

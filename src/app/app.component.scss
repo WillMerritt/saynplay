@@ -1,0 +1,11 @@
+@import '../variables';
+
+.container-fluid {
+  padding-top: 15px;
+}
+
+nav {
+  background-color: $dark-purple;
+  border-bottom: 1px solid $text-color;
+  color: $text-color;
+}

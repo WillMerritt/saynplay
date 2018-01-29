@@ -4,21 +4,26 @@ import {
   ElementRef,
   HostListener,
   Input,
-  OnInit, Renderer2, TemplateRef,
+  OnInit,
+  Renderer2,
+  TemplateRef,
   ViewChild
 } from '@angular/core';
 
 import {Object3D, Vector3} from 'three';
 import {ChessService} from '../../services/chess.service';
 import {IoService} from '../../services/io.service';
-import {Change, Coor, Pos} from '../../globals/classes';
+import {Coor, Pos} from '../../globals/classes';
 
 import DragControlsAdv from 'drag-controls-adv';
+
+const OrbitControls = require('three-orbit-controls')(THREE);
+const ObjLoader = require('three-obj-loader')(THREE);
+
 import * as THREE from 'three';
 import * as TWEEN from '@tweenjs/tween.js';
-import * as ObjLoader from 'three-obj-loader';
+
 import {BsModalRef, BsModalService} from 'ngx-bootstrap';
-ObjLoader(THREE);
 
 // Axis Orientation
 //    Y
@@ -33,7 +38,7 @@ ObjLoader(THREE);
 @Component({
   selector: 'app-chessboard',
   templateUrl: './chessboard.component.html',
-  styleUrls: ['./chessboard.component.css']
+  styleUrls: ['./chessboard.component.scss']
 })
 export class ChessboardComponent implements AfterViewInit, OnInit {
   // Modal Controls
@@ -56,12 +61,13 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
   private ambientLight: THREE.AmbientLight;
   private mouse: THREE.Vector2 = new THREE.Vector2();
   private dragControls: any;
+  private trackControls: any;
+  private controls: any;
   private objects: Object3D[] = [];
   public tween: any;
 
   // Camera Properties
   public camRotation = new THREE.Vector3(0, 0, 0);
-  public camAngle = new THREE.Vector3(0, 0, 0);
   public radius = 50;
   public increment = Math.PI / 2;
 
@@ -87,10 +93,10 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
       this.openModal(this.modalTemp);
     }
 
-    this.chessService.changes
-      .subscribe(
-        data => this.updateScenePieces(data)
-      );
+    // this.chessService.changes
+    //   .subscribe(
+    //     data => this.updateScenePieces(data)
+    //   );
 
     this.chessService.boardChanged
       .subscribe(
@@ -151,27 +157,7 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
     this.scene.add(sphere);
   }
 
-  animateToNewBoard(board) {
-    console.log('ANIMATING THE BOARD');
-    board.forEach((row, i) => {
-      row.forEach((col, j) => {
-        this.scene.children.forEach((child) => {
-          if (!col) {
-            return;
-          }
-          const name = this.getDetailName(col.name, col.color, i, j);
-          if (name === child.name) {
-            const newPos = this.getPosFromRowCol(i, j);
-            console.log(child.name, newPos);
-            this.animatePiece(child, newPos);
-          } else if (child.name !== '') {
-            // when a piece was removed
-            // load it in the correct place
-          }
-        });
-      });
-    });
-  }
+  animateToNewBoard(board) { }
 
   // TWEEN ANIMATIONS _____________________________________________
 
@@ -220,7 +206,7 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
     // this.camera.position.applyAxisAngle(axis, alpha);
   }
 
-  animatePiece = (object, newPos) => {
+  animatePiece(object, newPos) {
     this.tween = new TWEEN.Tween(object.position)
       .to(newPos)
       .start()
@@ -238,27 +224,23 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
     });
   }
 
-
-  animate = (object: Object3D, pos: THREE.Vector3) => {
+  movePiece(object: Object3D, pos: THREE.Vector3, callback) {
     const coors = this.getRowColFromPos(pos);
     const newCoors: Coor = this.getRowColFromPos(object.position);
     let newPos = new Pos(pos.x, pos.z);
     const piece = this.chessService.getPieceFromCoors(coors);
     if (this.chessService.isCompleteMoveLegal(piece, coors, newCoors)) {
       newPos = this.getClosestPos(object.position);
-      const changes = [new Change(coors, newCoors, piece)];
+      object.name = this.getDetailName(piece.name, piece.color, newCoors.row, newCoors.col);
       this.chessService.modifyBoard(piece, coors, newCoors, (removed) => {
         if (removed) {
           this.removePieceFromScene(removed, newCoors);
-
-          changes.push(new Change(newCoors, newCoors, piece));
         }
+        callback(newPos);
       });
-      if (this.chessService.isPlaying()) {
-        this.socketService.updateGame(changes);
-      }
+    } else {
+      callback(pos);
     }
-    this.animatePiece(object, newPos);
   }
 
   // ________________________________________________________________________
@@ -339,17 +321,17 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
     );
 
     this.renderer2.listen(this.dragControls, 'dragstart', (event) => {
-      // this.piecePos.copy( obj.position );
-      console.log('DRAG START...');
-      console.log(event.object);
+      this.controls.enabled = false;
       this.piecePos.copy(event.object.position);
+      console.log(event.object.name);
     });
 
 
     this.renderer2.listen(this.dragControls, 'dragend', (event) => {
-      // this.animate(obj, this.piecePos);
-      console.log('DRAG END...');
-      this.animate(event.object, this.piecePos);
+      this.controls.enabled = true;
+      this.movePiece(event.object, this.piecePos, (pos) => {
+        this.animatePiece(event.object, pos);
+      });
     });
   }
 
@@ -365,16 +347,19 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
     // Start Orbit Control
-    // this.controls = new OrbitControls(this.camera, this.renderer.domElement);
-    // this.controls.update();
+    this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+    this.controls.update();
+
+    // this.controls.enableZoom = false;
 
     this.camera.updateMatrixWorld(true);
+    // this.trackControls = new TrackballControls( this.camera, this.renderer );
 
 
     (function render() {
       requestAnimationFrame(render);
       TWEEN.update();
-      // component.controls.update();
+      component.controls.update();
       component.updateScene();
       component.renderer.render(component.scene, component.camera);
     }());
@@ -451,32 +436,38 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
   getDetailName(name, color, row, col) {
     return `${name}_${color}_${row}_${col}`;
   }
-
-  updateScenePieces(data: Change[]) {
-    data.forEach((change, i) => {
-
-      const row = change.oldCoor.row;
-      const col = change.oldCoor.col;
-      const name = this.getDetailName(change.piece.name, change.piece.color, row, col);
-
-      this.scene.children.forEach((child, j) => {
-        if (name === child.name) {
-          if (change.newCoor == null) {
-            this.scene.remove(child);
-            return;
-          }
-          child.name = this.getDetailName(
-            change.piece.name,
-            change.piece.color,
-            change.newCoor.row,
-            change.newCoor.col);
-
-          const newPos = this.getPosFromRowCol(change.newCoor.row, change.newCoor.col);
-          this.animatePiece(child, newPos);
-        }
-      });
-    });
+  getSimpleName(name, color) {
+    return `${name}_${color}`;
   }
+  getIndexName(name, color, index) {
+    return `${name}_${color}_${index}`;
+  }
+
+  // updateScenePieces(data: Change[]) {
+  //   data.forEach((change, i) => {
+  //
+  //     const row = change.oldCoor.row;
+  //     const col = change.oldCoor.col;
+  //     const name = this.getDetailName(change.piece.name, change.piece.color, row, col);
+  //
+  //     this.scene.children.forEach((child, j) => {
+  //       if (name === child.name) {
+  //         if (change.newCoor == null) {
+  //           this.scene.remove(child);
+  //           return;
+  //         }
+  //         child.name = this.getDetailName(
+  //           change.piece.name,
+  //           change.piece.color,
+  //           change.newCoor.row,
+  //           change.newCoor.col);
+  //
+  //         const newPos = this.getPosFromRowCol(change.newCoor.row, change.newCoor.col);
+  //         this.animatePiece(child, newPos);
+  //       }
+  //     });
+  //   });
+  // }
 
 
 

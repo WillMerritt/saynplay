@@ -47,15 +47,6 @@ export class ChessService {
     localStorage.removeItem('id');
   }
 
-  createGame(board, startTime, id) {
-    console.log('CREATING THE GAME');
-    this.board = board;
-    this.startTime = startTime;
-    this.id = id;
-    this.boardChanged.emit();
-    this.setGameInStorage(id);
-  }
-
   getGameId() {
     const id = this.id || localStorage.getItem('id');
     if (id) {
@@ -71,8 +62,8 @@ export class ChessService {
     this.board = board;
     this.startTime = startTime;
     this.id = id;
-    // this.changes.emit(changes);
     this.boardChanged.emit();
+    this.setGameInStorage(id);
   }
 
   setGameInStorage(id) {
