@@ -182,7 +182,20 @@ export class ChessService {
 
   // Legal Functions
   isLegalPawn(piece, coors, newCoors) {
-    const dif = piece.color === 'light' ? coors.row - newCoors.row : newCoors.row - coors.row;
+    const dif = coors.row - newCoors.row;
+    if (piece.color === 'light') {
+      if (coors.row === 6) {
+        if (coors.col === newCoors.col) {
+          // not taking piece
+        } else {
+          // Trying to take a piece so check the two diagonals
+        }
+      } else {
+
+      }
+    } else {
+
+    }
     if (coors.row === 1 || coors.row === 6) {
       return dif > 0 && dif <= 2 && coors.col === newCoors.col;
     }
