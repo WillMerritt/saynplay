@@ -1,7 +1,8 @@
 class Piece {
-  constructor(color){
+  constructor(color, id){
     this.color = color;
     this.name = this.constructor.name.toLowerCase()
+    this.id = id;
     // this.position = position
   }
 }

@@ -159,7 +159,21 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
     this.scene.add(sphere);
   }
 
-  animateToNewBoard(board) { }
+  animateToNewBoard(board) {
+    console.log('Animating the new board ...');
+     board.forEach((row, i) => {
+       row.forEach((piece, j) => {
+         const name = piece['name'];
+         const id = piece['id'];
+         const color = piece['color'];
+         this.scene.children.forEach(child => {
+           if (child.id == id) {
+             console.log(child);
+           }
+         })
+       })
+    })
+  }
 
   // TWEEN ANIMATIONS _____________________________________________
 
@@ -352,11 +366,14 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
     this.controls.update();
 
-    this.controls.enableZoom = false;
-    this.controls.enableRotate = false;
-    
+
+
     const info = this.deviceService.getDeviceInfo();
     console.log(info);
+    if (info.os === 'android' || info.os === 'iphone') {
+      this.controls.enableZoom = false;
+      this.controls.enableRotate = false;
+    }
 
 
     this.camera.updateMatrixWorld(true);
@@ -418,6 +435,7 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
         if (col == null) {
           return;
         }
+        const id = col['id'];
         const color = col['color'];
         const piece = col['name'];
         const name = this.getDetailName(piece, color, row_index, col_index);
@@ -433,6 +451,7 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
           obj.castShadow = true;
           obj.receiveShadow = true;
           obj.name = name;
+          obj.id = id;
           this.scene.add(obj);
           this.objects.push(obj);
         });
