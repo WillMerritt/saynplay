@@ -1,6 +1,7 @@
 import {EventEmitter, Injectable} from '@angular/core';
 import * as _ from 'underscore';
 import { HttpClient } from '@angular/common/http';
+import {Coor} from '../globals/classes';
 
 @Injectable()
 export class ChessService {
@@ -37,6 +38,25 @@ export class ChessService {
           callback(false);
         }
       );
+  }
+
+  sendBoard() {
+    console.log('Sending the game');
+    this.http.post('http://localhost:8000/ai/', this.board)
+      .subscribe(
+        data => console.log(data)
+      );
+  }
+
+  checkLegal(piece, coors, newCoors) {
+    console.log('CHECKING LEGAL WITH THE SERVER');
+    const body = {
+      'board': this.board,
+      'piece': piece,
+      'coors': coors,
+      'newCoors': newCoors
+    };
+    return this.http.post('http://localhost:8000/ai/islegal', JSON.stringify(body));
   }
 
   quitGame() {
@@ -92,7 +112,7 @@ export class ChessService {
     if (coors.row === newCoors.row && coors.col === newCoors.col) {
       return false;
     }
-    if (this.isSameSide(piece, newCoors)) {
+    if (this.isColor(piece.color, newCoors)) {
       return false;
     }
 
@@ -115,10 +135,14 @@ export class ChessService {
   }
 
   modifyBoard(piece, coors, newCoors, callback) {
-    const current = this.board[newCoors.row][newCoors.col];
-    this.board[coors.row][coors.col] = null;
-    this.board[newCoors.row][newCoors.col] = piece;
-    callback(current);
+    if (newCoors.row === coors.row && newCoors.col === coors.col) {
+      callback(null);
+    } else {
+      const current = this.board[newCoors.row][newCoors.col];
+      this.board[coors.row][coors.col] = null;
+      this.board[newCoors.row][newCoors.col] = piece;
+      callback(current);
+    }
   }
 
   // isKingInCheck(temp, color, coors) {
@@ -138,12 +162,12 @@ export class ChessService {
   //   });
   //   return inCheck;
   // }
-  isSameSide(piece, coors) {
+  isColor(color, coors) {
     // write code so that you cant move onto one of my own pieces
     const row = coors.row;
     const col = coors.col;
     if (this.board[row][col] !== null) {
-      return this.board[row][col].color === piece.color;
+      return this.board[row][col].color === color;
     }
     return false;
   }
@@ -184,12 +208,10 @@ export class ChessService {
   isLegalPawn(piece, coors, newCoors) {
     const dif = coors.row - newCoors.row;
     if (piece.color === 'light') {
-      if (coors.row === 6) {
-        if (coors.col === newCoors.col) {
-          // not taking piece
-        } else {
-          // Trying to take a piece so check the two diagonals
-        }
+      if (coors.row === 6 && coors.col === newCoors.col) {
+        const bool1 = (dif === 1 || dif === 2);
+        const temp = new Coor(newCoors.row - 1, newCoors.col);
+        return bool1 && !this.isBlocked(coors, temp);
       } else {
 
       }

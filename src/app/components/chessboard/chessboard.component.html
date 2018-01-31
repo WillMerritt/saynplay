@@ -1,6 +1,6 @@
 <div class="row">
   <div class="col-md-8 col-12">
-    <canvas #canvas ></canvas>
+    <canvas #canvas id="canvas" ></canvas>
   </div>
   <div class="col-md-4 col-12">
     <tabset>
@@ -10,6 +10,7 @@
         <button class="btn btn-chess btn-block" (click)="rotateCameraVertically(0.1)">Angle UP</button>
         <button class="btn btn-chess btn-block" (click)="rotateCameraVertically(-0.1)">Angle DOWN</button>
         <button class="btn btn-chess btn-block" (click)="quitGame()">Quit Game</button>
+        <button class="btn btn-primary btn-block" (click)="chessService.sendBoard()">Send Board</button>
       </tab>
       <tab heading="Players">
         <ul class="list-group" *ngIf="socketService.peopleConnected()">

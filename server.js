@@ -3,30 +3,7 @@ const express = require('express');
 const app = express();
 const assert = require('assert');
 
-
-// import Piece from "./js/classes/Pieces";
 const { createChessBoard }  = require('./js/Chess');
-
-
-// If an incoming request uses
-// a protocol other than HTTPS,
-// redirect that request to the
-// same url but with HTTPS
-const forceSSL = function() {
-  return function (req, res, next) {
-    if (req.headers['x-forwarded-proto'] !== 'https') {
-      return res.redirect(
-        ['https://', req.get('Host'), req.url].join('')
-      );
-    }
-    next();
-  }
-};
-// Instruct the app
-// to use the forceSSL
-// middleware
-
-// app.use(forceSSL());
 
 // API Config
 
@@ -40,13 +17,15 @@ app.get('/api/get-start-board', (req, res) => {
   res.send({'board': createChessBoard()});
 })
 
-app.get('*', (req, res, next) => {
+app.get('*', (req, res) => {
   res.sendFile(__dirname+"/dist/index.html");
 });
 
 
 
 // Socket / Mongo Config
+
+
 
 
 const http = require('http').createServer(app);
@@ -171,13 +150,13 @@ const updateGameById = function(db, id, board, callback) {
   })
 };
 
-const port = process.env.PORT || 8000;
+
+const port = process.env.PORT || 3000;
 http.listen( port , () => {
   console.log('listening to port ' + port)
 });
 
-
-// Chess Flow
+//Comment
 /*
 Once a person accepts a request to play, create a new board
 Save that board with the following attributes

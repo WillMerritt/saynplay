@@ -4,6 +4,7 @@ const gulp = require('gulp');
 const nodemon = require('gulp-nodemon');
 const notify = require('gulp-notify');
 const livereload = require('gulp-livereload');
+const wait = require('gulp-wait');
 
 // Task
 gulp.task('default', function() {
@@ -17,7 +18,8 @@ gulp.task('default', function() {
   }).on('restart', function(){
     // when the app has restarted, run livereload.
     gulp.src('server.js')
+      .pipe(wait(3000))
       .pipe(livereload())
-      .pipe(notify('Reloading page, please wait...'));
   })
 });
+// sdf

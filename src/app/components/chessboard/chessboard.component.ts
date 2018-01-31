@@ -95,11 +95,6 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
       this.openModal(this.modalTemp);
     }
 
-    // this.chessService.changes
-    //   .subscribe(
-    //     data => this.updateScenePieces(data)
-    //   );
-
     this.chessService.boardChanged
       .subscribe(
         () => this.animateToNewBoard(this.chessService.getGameBoard())
@@ -160,18 +155,19 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
   }
 
   animateToNewBoard(board) {
-     board.forEach((row, i) => {
-       row.forEach((piece, j) => {
-         if (piece === null) return;
-         const name = piece['name'];
-         const id = piece['id'];
-         const color = piece['color'];
-         const obj = this.scene.getObjectByName(id);
-         if (obj) {
-           this.animatePiece(obj, this.getPosFromRowCol(i, j));
-         }
-       })
-    })
+    // let ids = new Set([]);
+    board.forEach((row, i) => {
+      row.forEach((piece, j) => {
+        if (piece === null) return;
+        const name = piece['name'];
+        const id = piece['id'];
+        const color = piece['color'];
+        const obj = this.scene.getObjectByName(id);
+        if (obj) {
+          this.animatePiece(obj, this.getPosFromRowCol(i, j));
+        }
+      });
+    });
   }
 
   // TWEEN ANIMATIONS _____________________________________________
@@ -229,7 +225,6 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
   }
 
   removePieceFromScene(piece) {
-    // const name = this.getDetailName(piece.name, piece.color, coors.row, coors.col);
     const obj = this.scene.getObjectByName(piece['id']);
     if (obj) {
       obj.visible = false;
@@ -241,21 +236,26 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
     const newCoors: Coor = this.getRowColFromPos(object.position);
     let newPos = new Pos(pos.x, pos.z);
     const piece = this.chessService.getPieceFromCoors(coors);
-    if (this.chessService.isCompleteMoveLegal(piece, coors, newCoors)) {
-      newPos = this.getClosestPos(object.position);
-      // object.name = this.getDetailName(piece.name, piece.color, newCoors.row, newCoors.col);
-      this.chessService.modifyBoard(piece, coors, newCoors, (removed) => {
-        if (removed) {
-          this.removePieceFromScene(removed);
-        }
-        callback(newPos);
-      });
-    } else {
-      callback(pos);
-    }
+    this.chessService.checkLegal(piece, coors, newCoors)
+      .subscribe(
+        (data) => {
+          if (data['legal'] === true) {
+            newPos = this.getClosestPos(object.position);
+            this.chessService.modifyBoard(piece, coors, newCoors, (removed) => {
+              if (removed) {
+                this.removePieceFromScene(removed);
+              }
+              callback(newPos);
+            });
+          } else {
+            callback(pos);
+          }
+        },
+        (err) => console.log(err)
+      );
   }
 
-  // ________________________________________________________________________
+  // _______________________________________________________________________
 
   // Give position, get row and col
   getRowColFromPos(pos: THREE.Vector3): Coor {
@@ -329,17 +329,20 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
       this.camera,
       this.renderer.domElement,
       new THREE.Vector3(0, 1, 0)
-      // this.animate
     );
 
     this.renderer2.listen(this.dragControls, 'dragstart', (event) => {
-      this.controls.enabled = false;
+      if (this.controls) {
+        this.controls.enabled = false;
+      }
       this.piecePos.copy(event.object.position);
     });
 
 
     this.renderer2.listen(this.dragControls, 'dragend', (event) => {
-      this.controls.enabled = true;
+      if (this.controls) {
+        this.controls.enabled = true;
+      }
       this.movePiece(event.object, this.piecePos, (pos) => {
         this.animatePiece(event.object, pos);
         if (this.chessService.isPlaying()) {
@@ -361,27 +364,20 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
     // Start Orbit Control
-    this.controls = new OrbitControls(this.camera, this.renderer.domElement);
-    this.controls.update();
-
-
-
-    const info = this.deviceService.getDeviceInfo();
-    console.log(info);
-    if (info['device'] === 'android' || info['device'] === 'iphone') {
-      this.controls.enableZoom = false;
-      this.controls.enableRotate = false;
-    }
-
-
+    // this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+    // this.controls.update();
+    // const info = this.deviceService.getDeviceInfo();
+    // if (info['device'] === 'android' || info['device'] === 'iphone') {
+    //   this.controls.enableZoom = false;
+    //   this.controls.enableRotate = false;
+    // }
     this.camera.updateMatrixWorld(true);
     // this.trackControls = new TrackballControls( this.camera, this.renderer );
-
 
     (function render() {
       requestAnimationFrame(render);
       TWEEN.update();
-      component.controls.update();
+      // component.controls.update();
       component.updateScene();
       component.renderer.render(component.scene, component.camera);
     }());
@@ -456,16 +452,6 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
         });
       });
     });
-  }
-
-  getDetailName(name, color, row, col) {
-    return `${name}_${color}_${row}_${col}`;
-  }
-  getSimpleName(name, color) {
-    return `${name}_${color}`;
-  }
-  getIndexName(name, color, index) {
-    return `${name}_${color}_${index}`;
   }
 
   // Utilities
