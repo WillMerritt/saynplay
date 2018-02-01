@@ -44,7 +44,11 @@ export class ChessService {
     console.log('Sending the game');
     this.http.post('http://localhost:8000/ai/', this.board)
       .subscribe(
-        data => this.updateAIGame(data)
+        data => {
+          console.log('JUST GOT THE NEW BOARD');
+          console.log(data)
+          this.updateAIGame(data)
+        }
       );
   }
 
@@ -82,13 +86,13 @@ export class ChessService {
     this.board = board;
     this.startTime = startTime;
     this.id = id;
-    this.boardChanged.emit();
+    this.boardChanged.emit(board);
     this.setGameInStorage(id);
   }
 
   updateAIGame(board) {
     this.board = board;
-    this.boardChanged.emit();
+    this.boardChanged.emit(board);
   }
 
   setGameInStorage(id) {
