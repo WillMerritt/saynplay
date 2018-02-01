@@ -97,7 +97,7 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
 
     this.chessService.boardChanged
       .subscribe(
-        () => this.animateToNewBoard(this.chessService.getGameBoard())
+        (board) => this.animateToNewBoard(board)
       );
   }
 
