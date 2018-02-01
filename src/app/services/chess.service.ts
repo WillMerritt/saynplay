@@ -44,7 +44,7 @@ export class ChessService {
     console.log('Sending the game');
     this.http.post('http://localhost:8000/ai/', this.board)
       .subscribe(
-        data => console.log(data)
+        data => this.updateAIGame(data)
       );
   }
 
@@ -84,6 +84,11 @@ export class ChessService {
     this.id = id;
     this.boardChanged.emit();
     this.setGameInStorage(id);
+  }
+
+  updateAIGame(board) {
+    this.board = board;
+    this.boardChanged.emit();
   }
 
   setGameInStorage(id) {

@@ -28,11 +28,7 @@ export class IoService implements OnInit {
       const board = game['game'];
       const startTime = game['startTime'];
       const id = game['_id'];
-      // if (changes) {
       this.chessService.updateGame(board, startTime, id);
-      // } else {
-      //   this.chessService.createGame(board, startTime, id);
-      // }
     });
   }
 
