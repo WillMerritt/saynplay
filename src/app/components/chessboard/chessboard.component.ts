@@ -22,6 +22,7 @@ const ObjLoader = require('three-obj-loader')(THREE);
 
 import * as THREE from 'three';
 import * as TWEEN from '@tweenjs/tween.js';
+import * as _ from 'underscore';
 
 import {BsModalRef, BsModalService} from 'ngx-bootstrap';
 import { Ng2DeviceService } from 'ng2-device-detector';
@@ -34,6 +35,7 @@ import { Ng2DeviceService } from 'ng2-device-detector';
 //   / Board goes here
 //  /
 // Z
+
 
 
 @Component({
@@ -156,6 +158,9 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
 
   animateToNewBoard(board) {
     // let ids = new Set([]);
+    const total = _.range(0, 32);
+    const ids = [];
+    this.chessService.switchTurn();
     board.forEach((row, i) => {
       row.forEach((piece, j) => {
         if (piece === null) return;
@@ -163,11 +168,22 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
         const id = piece['id'];
         const color = piece['color'];
         const obj = this.scene.getObjectByName(id);
+        ids.push(id);
         if (obj) {
+          obj.visible = true;
           this.animatePiece(obj, this.getPosFromRowCol(i, j));
         }
       });
     });
+    const difference = _.difference(total, ids);
+    difference.forEach(id => {
+      const obj = this.scene.getObjectByName(id);
+      obj.visible = false;
+    });
+
+    // const set1 = new Set(ids);
+    // const set2 = new Set(_.range(0, total));
+
   }
 
   // TWEEN ANIMATIONS _____________________________________________
@@ -217,7 +233,7 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
 
   animatePiece(object, newPos) {
     this.tween = new TWEEN.Tween(object.position)
-      .to(newPos)
+      .to(newPos, 300)
       .start()
       .easing(TWEEN.Easing.Exponential.InOut)
       .onUpdate(() => {
@@ -231,25 +247,15 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
     }
   }
 
-  movePiece(object: Object3D, pos: THREE.Vector3, callback) {
+  movePiece(object: Object3D, pos: THREE.Vector3) {
     const coors = this.getRowColFromPos(pos);
     const newCoors: Coor = this.getRowColFromPos(object.position);
-    let newPos = new Pos(pos.x, pos.z);
-    const piece = this.chessService.getPieceFromCoors(coors);
-    this.chessService.checkLegal(piece, coors, newCoors)
+    this.chessService.checkLegal(coors, newCoors)
       .subscribe(
         (data) => {
-          if (data['legal'] === true) {
-            newPos = this.getClosestPos(object.position);
-            this.chessService.modifyBoard(piece, coors, newCoors, (removed) => {
-              if (removed) {
-                this.removePieceFromScene(removed);
-              }
-              callback(newPos);
-            });
-          } else {
-            callback(pos);
-          }
+          const board = data['board'];
+          const legal = data['legal'];
+          this.chessService.updateAIGame(board);
         },
         (err) => console.log(err)
       );
@@ -343,12 +349,7 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
       if (this.controls) {
         this.controls.enabled = true;
       }
-      this.movePiece(event.object, this.piecePos, (pos) => {
-        this.animatePiece(event.object, pos);
-        if (this.chessService.isPlaying()) {
-          this.socketService.updateGame();
-        }
-      });
+      this.movePiece(event.object, this.piecePos);
     });
   }
 
@@ -490,26 +491,5 @@ export class ChessboardComponent implements AfterViewInit, OnInit {
   onMouseMove(event: any) {
     this.updateMouse(event);
   }
-
-  // EXTRA CODE
-
-  /*
-  addShadowBox() {
-    const largeSize = 10000;
-    const geometry = new THREE.BoxGeometry(largeSize, largeSize, largeSize);
-    const dir = 'assets/images/mp_midnight/midnight-silence_';
-    const type = '.png';
-    const cubeMaterials = [
-      new THREE.MeshBasicMaterial({map: new THREE.TextureLoader().load(dir + 'ft' + type), side: THREE.DoubleSide}),
-      new THREE.MeshBasicMaterial({map: new THREE.TextureLoader().load(dir + 'bk' + type), side: THREE.DoubleSide}),
-      new THREE.MeshBasicMaterial({map: new THREE.TextureLoader().load(dir + 'up' + type), side: THREE.DoubleSide}),
-      new THREE.MeshBasicMaterial({map: new THREE.TextureLoader().load(dir + 'dn' + type), side: THREE.DoubleSide}),
-      new THREE.MeshBasicMaterial({map: new THREE.TextureLoader().load(dir + 'rt' + type), side: THREE.DoubleSide}),
-      new THREE.MeshBasicMaterial({map: new THREE.TextureLoader().load(dir + 'lf' + type), side: THREE.DoubleSide}),
-    ];
-    const cube = new THREE.Mesh(geometry, cubeMaterials);
-    this.scene.add( cube );
-  }
-  */
 }
 
