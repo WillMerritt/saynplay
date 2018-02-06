@@ -14,6 +14,7 @@ import { AboutComponent } from './components/about/about.component';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import { Ng2DeviceDetectorModule } from 'ng2-device-detector';
 // import { MatTabsModule} from '@angular/material';
+import { Ng4LoadingSpinnerModule } from 'ng4-loading-spinner';
 
 
 @NgModule({
@@ -30,7 +31,8 @@ import { Ng2DeviceDetectorModule } from 'ng2-device-detector';
     ModalModule.forRoot(),
     TruncateModule,
     BrowserAnimationsModule,
-    // MatTabsModule
+    // MatTabsModule,
+    Ng4LoadingSpinnerModule.forRoot(),
     TabsModule.forRoot(),
     Ng2DeviceDetectorModule.forRoot()
 

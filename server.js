@@ -35,7 +35,7 @@ const ObjectId = require('mongodb').ObjectId;
 const mongoUri = 'mongodb://atnelson:Buddy1009@ds155577.mlab.com:55577/saynplay';
 const devUri = 'mongodb://127.0.0.1:27017/';
 
-MongoClient.connect(devUri, (err, client) => {
+MongoClient.connect(mongoUri, (err, client) => {
   if (err) return console.log(err);
   db = client.db('saynplay');
 

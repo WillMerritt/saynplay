@@ -2,6 +2,7 @@ import {EventEmitter, Injectable} from '@angular/core';
 import * as _ from 'underscore';
 import { HttpClient } from '@angular/common/http';
 import {Coor} from '../globals/classes';
+import {Ng4LoadingSpinnerService} from 'ng4-loading-spinner';
 
 @Injectable()
 export class ChessService {
@@ -12,7 +13,8 @@ export class ChessService {
   public boardChanged: EventEmitter<any> = new EventEmitter();
   public turn = 'light';
 
-  constructor(private http: HttpClient) {
+  constructor(private http: HttpClient,
+              private spinnerService: Ng4LoadingSpinnerService) {
 
   }
 
@@ -32,7 +34,6 @@ export class ChessService {
       .subscribe(
         data => {
           this.board = data['board'];
-          console.log(this.board);
           callback(true);
         },
         err => {
@@ -42,21 +43,27 @@ export class ChessService {
       );
   }
 
-  sendBoard() {
-    // console.log('Sending the game');
+  sendBoard(color: string) {
+    this.spinnerService.show();
     const body = {
       'board': this.board,
-      'turn': this.turn
+      'turn': color
     };
     this.http.post('http://localhost:8000/ai/', body)
       .subscribe(
         data => {
-          // console.log('JUST GOT THE NEW BOARD');
-          // console.log(data);
-          this.updateAIGame(data);
+          this.spinnerService.hide();
+          const board = data['board'];
+          const mate = data['mate'];
+          if (mate) {
+            console.log(`${color.toUpperCase()} was checkmated!!!`);
+          }
+          this.updateAIGame(board);
         },
-        err => console.log(err)
-        // () => this.sendBoard()
+        err => {
+          console.log(err);
+          this.spinnerService.hide();
+        }
       );
   }
 

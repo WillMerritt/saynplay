@@ -10,7 +10,8 @@
         <button class="btn btn-chess btn-block" (click)="rotateCameraVertically(0.1)">Angle UP</button>
         <button class="btn btn-chess btn-block" (click)="rotateCameraVertically(-0.1)">Angle DOWN</button>
         <button class="btn btn-chess btn-block" (click)="quitGame()">Quit Game</button>
-        <button class="btn btn-primary btn-block" (click)="chessService.sendBoard()">Send Board</button>
+        <button class="btn btn-primary btn-block" (click)="chessService.sendBoard('light')">LightAI</button>
+        <button class="btn btn-primary btn-block" (click)="chessService.sendBoard('dark')">DarkAI</button>
       </tab>
       <tab heading="Players">
         <ul class="list-group" *ngIf="socketService.peopleConnected()">
