@@ -15,7 +15,7 @@ app.get('/api/json', (req, res) => {
 
 app.get('/api/get-start-board', (req, res) => {
   res.send({'board': createChessBoard()});
-})
+});
 
 app.get('*', (req, res) => {
   res.sendFile(__dirname+"/dist/index.html");
