@@ -1,8 +1,7 @@
-import {EventEmitter, Injectable} from '@angular/core';
-import * as _ from 'underscore';
+import { EventEmitter, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import {Coor} from '../globals/classes';
-import {Ng4LoadingSpinnerService} from 'ng4-loading-spinner';
+import { Ng4LoadingSpinnerService } from 'ng4-loading-spinner';
+import { environment } from '../../environments/environment';
 
 @Injectable()
 export class ChessService {
@@ -49,7 +48,7 @@ export class ChessService {
       'board': this.board,
       'turn': color
     };
-    this.http.post('http://localhost:8000/ai/', body)
+    this.http.post(environment.domain + 'ai/', body)
       .subscribe(
         data => {
           this.spinnerService.hide();
@@ -79,7 +78,7 @@ export class ChessService {
       'coors': coors,
       'newCoors': newCoors
     };
-    return this.http.post('http://localhost:8000/ai/islegal', JSON.stringify(body));
+    return this.http.post(environment.domain + 'ai/islegal', JSON.stringify(body));
   }
 
   quitGame() {
